@@ -13,10 +13,11 @@
 
 1. 把 epub 放进 `books/`，封面放进 `media/covers/`
 2. 在 `data/books.json` 里加一条记录（字段照抄现有条目）
-3. 跑 `python3 tools/build-search-index.py` 重建正文索引
-4. 提交
+3. 提交
 
-不想碰 JSON：用 <https://app.pagescms.org> 登录，表单填完保存即可（正文索引仍需本地跑脚本）。
+正文索引由 GitHub Actions 自动重建，不用手动跑脚本。推送后去 **Actions** 标签看 `重建全文搜索索引` 这一次运行，绿勾即完成。
+
+不想碰 JSON：用 <https://app.pagescms.org> 登录，表单填完保存即可，索引同样自动重建。
 
 ## 目录
 
@@ -27,9 +28,10 @@
 | `about.html` | 关于 |
 | `data/books.json` | 书目数据 |
 | `data/site.json` | 作者名、导语、版权 |
-| `data/search-index.json` | 正文索引（脚本生成） |
+| `data/search-index.json` | 正文索引（Actions 自动生成，勿手改） |
 | `books/` | epub / pdf 文件 |
 | `assets/vendor/epub.min.js` | 阅读器内核（本地存放，不依赖 CDN） |
+| `.github/workflows/build-search-index.yml` | 加书后自动重建索引 |
 | `.pages.yml` | Pages CMS 后台配置 |
 | `sw.js` / `manifest.json` | 离线缓存与主屏幕安装 |
 

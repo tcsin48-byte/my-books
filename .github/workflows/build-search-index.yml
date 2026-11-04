@@ -1,0 +1,45 @@
+name: 重建全文搜索索引
+
+# 加书、换书、改书名后，自动从 EPUB 抽正文，重写 data/search-index.json
+on:
+  push:
+    branches: [main]
+    paths:
+      - "books/**"
+      - "data/books.json"
+      - "tools/build-search-index.py"
+      - ".github/workflows/build-search-index.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# 连续上传多本时不排队，只跑最后一次
+concurrency:
+  group: search-index
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 生成索引
+        run: python3 tools/build-search-index.py
+
+      - name: 有变化才提交
+        run: |
+          if git diff --quiet -- data/search-index.json; then
+            echo "索引无变化，跳过提交"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/search-index.json
+          git commit -m "chore: 自动重建全文搜索索引"
+          git push
