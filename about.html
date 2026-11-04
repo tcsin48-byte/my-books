@@ -33,7 +33,7 @@
     <p>本站作品版权归作者所有。欢迎免费阅读、下载与转发链接；如需转载、改编或用于教学、出版，请先来信告知。请勿将作品用于商业用途。</p>
 
     <h2>联系</h2>
-    <p>邮箱：<span class="muted">（在此填入你的邮箱）</span></p>
+    <p>邮箱：<a class="mail" data-site-mail href="#" hidden></a><span class="muted" data-site-mail-empty>（在后台「站点信息 → 联系邮箱」填入后，这里会自动显示）</span></p>
     <p class="muted">若你希望读者能直接留言，可以接入 Giscus（基于 GitHub Discussions，免费），无需服务器。</p>
   </article>
 </main>
@@ -46,5 +46,20 @@
 </footer>
 
 <script src="assets/js/pwa.js"></script>
+<script>
+/* 「关于」页是静态页，只从 site.json 补一个联系邮箱 */
+fetch("data/site.json", { cache: "no-cache" })
+  .then(function (r) { return r.json(); })
+  .then(function (s) {
+    var a = document.querySelector("[data-site-mail]");
+    var hint = document.querySelector("[data-site-mail-empty]");
+    if (!a || !s || !s.email) return;
+    a.textContent = s.email;
+    a.href = "mailto:" + s.email;
+    a.hidden = false;
+    if (hint) hint.hidden = true;
+  })
+  .catch(function () {});
+</script>
 </body>
 </html>

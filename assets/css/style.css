@@ -417,6 +417,9 @@ button, input, select { font-family: var(--sans); font-size: 15px; }
 .prose h2 { font-size: 19px; margin: 34px 0 10px; font-weight: 600; }
 .prose p { margin: 0 0 16px; color: #33372f; }
 .prose .muted { color: var(--muted); font-size: 14.5px; }
+.prose a.mail { color: var(--green); text-decoration: none; border-bottom: 1px solid currentColor; word-break: break-all; }
+.prose a.mail:hover { opacity: .75; }
+.prose a.mail[hidden] { display: none; }
 
 /* 表格（架构说明用） */
 table.simple { width: 100%; border-collapse: collapse; font-family: var(--sans); font-size: 13.5px; margin: 16px 0 24px; }

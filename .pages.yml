@@ -1,5 +1,6 @@
 # Pages CMS 配置：在 https://app.pagescms.org 用 GitHub 登录后即可可视化编辑本站
 # 每次保存都会 commit 到仓库，GitHub Pages 自动重新发布
+# 正文索引由 .github/workflows/build-search-index.yml 自动重建，无需手动跑脚本
 
 media:
   input: media        # 上传的文件存到仓库的 media/ 目录
@@ -20,49 +21,57 @@ content:
         type: string
         required: true
         pattern: "^[a-z0-9-]+$"
-        description: 只能用英文小写、数字和短横线，例如 bukit-tales
+        description: 决定这本书的网址（book.html?id=xxx）。只能用小写英文、数字、短横线。发布后尽量别改——改了旧链接会失效，读者收藏的地址就打不开了。
       - name: title
         label: 书名
         type: string
         required: true
+        description: 首页卡片和详情页的大标题，也会出现在浏览器标签上。
       - name: subtitle
         label: 副标题 / 原文名
         type: string
+        description: 显示在书名下方。首页卡片会拼成「副标题 · 年份」。译作可以填原文书名。
       - name: type
         label: 类型
         type: string
-        description: 小说 / 散文 / 诗歌 / 评论 / 翻译 / 其他——首页的筛选按钮会自动按这里生成
+        description: 首页顶部的筛选按钮由这里的取值自动生成。同类作品请用完全相同的写法，统一写「散文」而不是「随笔」「散文集」混用，否则会多出几个重复按钮。
       - name: year
         label: 年份
         type: string
+        description: 写作或出版年份，显示在副标题后面。填四位数字即可。
       - name: lang
         label: 语言
         type: string
+        description: 显示在详情页的信息行。可以写「中文」，也可以写「中文 / Bahasa Melayu」。
       - name: tags
         label: 标签
         type: string
         list: true
+        description: 每按一次回车加一个，建议 2–4 个。不显示成可见标签，但会参与首页关键词搜索，读者搜「二战」「马华文学」这类词时靠它命中。
       - name: cover
         label: 封面
         type: image
+        description: 竖版封面最好，比例约 2:3（例如 600×900）。jpg / png / svg / webp 都行。文件名避免中文和空格。留空的话卡片会显示破图。
       - name: desc
         label: 简介
         type: text
+        description: 只在详情页显示，首页卡片不显示这段。建议 50–150 字，第一句就要能抓住人。
       - name: epub
         label: EPUB 文件
         type: file
-        description: 留空表示没有 EPUB 版本
+        description: 留空表示没有 EPUB 版本。上传后 GitHub Actions 会自动重建正文索引，约 1–2 分钟；在那之前首页正文搜索还搜不到这本，属正常。网页后台单文件上限 25 MB。
       - name: pdf
         label: PDF 文件
         type: file
-        description: 留空表示没有 PDF 版本
+        description: 留空表示没有 PDF 版本。适合带插图、需要固定排版的册子。超过 25 MB 请改传 GitHub Releases，再把下载链接填在这里（可以直接填完整网址）。
       - name: size
         label: 文件大小（字节）
         type: number
-        description: 可留空；填了会在详情页显示
+        description: 可留空。填了会在详情页显示成「2.4 MB」这样的可读单位。注意这里要填字节数，不是 MB 数。
       - name: updated
         label: 更新日期
         type: date
+        description: 只影响首页排序——按这个日期从新到旧。改简介、换封面可以不动它；重新上传文件后建议改成当天，书会浮到最前面。
 
   - name: site
     label: 站点信息
@@ -74,15 +83,20 @@ content:
         label: 作者名
         type: string
         required: true
+        description: 显示在首页大标题、页头标识和浏览器标签上。改这里等于给整站换名字。
       - name: tagline
         label: 一句话介绍
         type: string
+        description: 首页标题下面那行小字，例如「小说 · 散文 · 翻译 · 评论」。别太长，一行放得下最好。
       - name: intro
         label: 首页导语
         type: text
+        description: 首页标题区下面的一段话，说明这个书房收什么。两三句就够，太长会把书目挤到屏幕外。
       - name: copyright
         label: 版权声明
         type: text
+        description: 显示在每页页脚。建议写清「版权归作者所有」和「禁止商业用途」。
       - name: email
         label: 联系邮箱
         type: string
+        description: 填了之后，「关于」页的邮箱会自动变成可点击的 mailto 链接。留空则显示「尚未填写」的提示。这是公开信息，不想被爬虫抓可以写成 name(at)example.com 这种形式，但那样就不能直接点击了。
