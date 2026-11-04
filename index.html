@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="个人电子书房：在线阅读与下载 EPUB / PDF 作品。">
+<meta name="theme-color" content="#2f4a3c">
+<title>电子书房</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="media/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="brand" href="index.html" data-site="author">我的书房</a>
+    <nav class="topnav">
+      <a href="about.html">关于</a>
+      <a href="#books">作品</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="hero">
+    <h1><span data-site="author">我的书房</span>的书房</h1>
+    <p class="lede" data-site="intro"></p>
+
+    <form class="searchbar" id="searchform" role="search">
+      <input id="q" type="search" placeholder="搜索书名、标签或简介" autocomplete="off" aria-label="搜索作品">
+      <button type="submit">搜索</button>
+    </form>
+
+    <div class="chips" id="filters"></div>
+  </section>
+
+  <section id="books" aria-label="作品列表">
+    <div class="grid" id="list"></div>
+    <p class="empty" id="empty" hidden>没有匹配的作品，换个关键词试试。</p>
+    <div id="bodyhits"></div>
+    <noscript><p class="empty">这个页面需要开启 JavaScript 才能显示书目。</p></noscript>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <span data-site="copyright"></span>
+    <span>本站为静态站点，由 GitHub Pages 免费托管。</span>
+  </div>
+</footer>
+
+<script src="assets/js/app.js"></script>
+<script src="assets/js/pwa.js"></script>
+</body>
+</html>

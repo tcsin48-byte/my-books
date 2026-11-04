@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 800" width="600" height="800">
+  <rect width="600" height="800" fill="#2f4a3c"/>
+  <rect x="34" y="34" width="532" height="732" fill="none" stroke="#d8cdb0" stroke-width="1.2" opacity="0.55"/>
+  <rect x="46" y="46" width="508" height="708" fill="none" stroke="#d8cdb0" stroke-width="0.6" opacity="0.3"/>
+  <text x="300" y="300" font-family="Songti SC, Noto Serif CJK SC, serif" font-size="74" fill="#f4efe1" text-anchor="middle" letter-spacing="10">武吉轶事</text>
+  <line x1="240" y1="342" x2="360" y2="342" stroke="#b9a880" stroke-width="1"/>
+  <text x="300" y="392" font-family="Georgia, serif" font-size="19" fill="#c9bfa4" text-anchor="middle" letter-spacing="7">BUKIT TALES</text>
+  <text x="300" y="700" font-family="Songti SC, Noto Serif CJK SC, serif" font-size="17" fill="#b9c4ba" text-anchor="middle" letter-spacing="5">陈 政 欣</text>
+</svg>

@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2f4a3c">
+<title>作品 · 电子书房</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="media/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="brand" href="index.html"><span>← 书目</span></a>
+    <nav class="topnav"><a href="about.html">关于</a></nav>
+  </div>
+</header>
+
+<main class="wrap bookpage">
+  <div id="detail"></div>
+</main>
+
+<footer class="foot">
+  <div class="wrap"><span>© 2026 陈政欣 · 本站由 GitHub Pages 免费托管</span></div>
+</footer>
+
+<!-- 全屏阅读器 -->
+<div class="reader" id="reader">
+  <div class="reader-bar">
+    <button class="iconbtn" id="closeReader" aria-label="关闭">✕</button>
+    <div class="title" id="readerTitle"></div>
+    <button class="iconbtn" id="tocBtn" aria-label="目录">☰</button>
+    <button class="iconbtn" id="settingsBtn" aria-label="阅读设置">Aa</button>
+  </div>
+  <div class="reader-progress" id="readerProgress"><i></i></div>
+  <div class="viewer-shell">
+    <div id="viewer"></div>
+
+    <div class="settings" id="settings">
+      <div class="row">
+        <span>字号</span>
+        <div class="seg">
+          <button type="button" data-font="down">A−</button>
+          <button type="button" data-font="up">A+</button>
+        </div>
+      </div>
+      <div class="row">
+        <span>背景</span>
+        <div class="seg">
+          <button type="button" data-theme="paper" aria-pressed="true">纸</button>
+          <button type="button" data-theme="plain" aria-pressed="false">白</button>
+          <button type="button" data-theme="night" aria-pressed="false">夜</button>
+        </div>
+      </div>
+      <div class="row" style="color:#6b7169;font-size:12px;line-height:1.6">
+        <span>左右点击屏幕可翻页<br>Esc 关闭阅读器</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="scrim" id="scrim"></div>
+
+<aside class="drawer" id="tocDrawer">
+  <div class="toc" id="toc"></div>
+</aside>
+
+<button class="quote-btn" id="quoteBtn" type="button">做成卡片</button>
+
+<div class="quote-modal" id="quoteModal">
+  <div class="quote-sheet">
+    <div class="quote-head">
+      <span>分享卡片</span>
+      <button class="iconbtn" id="quoteClose" type="button" aria-label="关闭">✕</button>
+    </div>
+    <div class="quote-preview"><canvas id="quoteCanvas" width="1080" height="1440"></canvas></div>
+    <div class="quote-tools">
+      <div class="seg">
+        <button type="button" data-card-style="paper" aria-pressed="true">纸</button>
+        <button type="button" data-card-style="ink" aria-pressed="false">墨</button>
+        <button type="button" data-card-style="dusk" aria-pressed="false">暮</button>
+      </div>
+      <button class="btn" id="quoteDownload" type="button">保存图片</button>
+    </div>
+  </div>
+</div>
+
+<script src="assets/vendor/epub.min.js"></script>
+<script src="assets/js/reader.js"></script>
+<script src="assets/js/pwa.js"></script>
+</body>
+</html>

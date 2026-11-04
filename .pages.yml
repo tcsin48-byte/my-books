@@ -1,0 +1,88 @@
+# Pages CMS 配置：在 https://app.pagescms.org 用 GitHub 登录后即可可视化编辑本站
+# 每次保存都会 commit 到仓库，GitHub Pages 自动重新发布
+
+media:
+  input: media        # 上传的文件存到仓库的 media/ 目录
+  output: media       # 写入 JSON 的路径前缀（保持相对路径，站点部署在子目录也能用）
+
+content:
+  - name: books
+    label: 作品书目
+    type: file
+    path: data/books.json
+    format: json
+    list: true
+    view:
+      primary: title
+    fields:
+      - name: id
+        label: 链接标识
+        type: string
+        required: true
+        pattern: "^[a-z0-9-]+$"
+        description: 只能用英文小写、数字和短横线，例如 bukit-tales
+      - name: title
+        label: 书名
+        type: string
+        required: true
+      - name: subtitle
+        label: 副标题 / 原文名
+        type: string
+      - name: type
+        label: 类型
+        type: string
+        description: 小说 / 散文 / 诗歌 / 评论 / 翻译 / 其他——首页的筛选按钮会自动按这里生成
+      - name: year
+        label: 年份
+        type: string
+      - name: lang
+        label: 语言
+        type: string
+      - name: tags
+        label: 标签
+        type: string
+        list: true
+      - name: cover
+        label: 封面
+        type: image
+      - name: desc
+        label: 简介
+        type: text
+      - name: epub
+        label: EPUB 文件
+        type: file
+        description: 留空表示没有 EPUB 版本
+      - name: pdf
+        label: PDF 文件
+        type: file
+        description: 留空表示没有 PDF 版本
+      - name: size
+        label: 文件大小（字节）
+        type: number
+        description: 可留空；填了会在详情页显示
+      - name: updated
+        label: 更新日期
+        type: date
+
+  - name: site
+    label: 站点信息
+    type: file
+    path: data/site.json
+    format: json
+    fields:
+      - name: author
+        label: 作者名
+        type: string
+        required: true
+      - name: tagline
+        label: 一句话介绍
+        type: string
+      - name: intro
+        label: 首页导语
+        type: text
+      - name: copyright
+        label: 版权声明
+        type: text
+      - name: email
+        label: 联系邮箱
+        type: string

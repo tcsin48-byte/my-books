@@ -1,0 +1,20 @@
+{
+  "name": "陈政欣 · 电子书房",
+  "short_name": "电子书房",
+  "description": "个人电子书房：在线阅读与下载 EPUB / PDF 作品。",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f4efe1",
+  "theme_color": "#2f4a3c",
+  "lang": "zh-CN",
+  "icons": [
+    {
+      "src": "media/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
