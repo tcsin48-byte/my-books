@@ -6,11 +6,7 @@
     "type": "小说",
     "year": "2025",
     "lang": "中文 / Bahasa Melayu",
-    "tags": [
-      "二战",
-      "马来亚",
-      "多族群"
-    ],
+    "tags": ["二战", "马来亚", "多族群"],
     "cover": "media/covers/bukit-tales.svg",
     "desc": "（示例条目，请替换为正式简介。）以二战时期武吉镇为背景的长篇，涉及中国远征军、马来亚联邦与缅甸战役，多族群人物交织。",
     "epub": "books/sample.epub",
@@ -25,10 +21,7 @@
     "type": "散文",
     "year": "2026",
     "lang": "中文",
-    "tags": [
-      "文学评论",
-      "马华文学"
-    ],
+    "tags": ["文学评论", "马华文学"],
     "cover": "media/covers/essays.svg",
     "desc": "（示例条目，请替换为正式简介。）收录近年谈文学、谈翻译、谈地方记忆的散文与评论。",
     "epub": "",
