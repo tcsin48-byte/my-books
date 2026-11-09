@@ -63,8 +63,14 @@
   }
 
   function renderFilters() {
-    const types = ["全部", ...new Set((DATA.books || []).map((b) => b.type).filter(Boolean))];
-    chipsEl.innerHTML = types
+    /* 栏目顺序以「站点信息 → 首页栏目」为准；书目里出现但没登记的，排在后面自动补上 */
+    const configured = ((DATA.site && DATA.site.sections) || []).filter(Boolean);
+    const present = (DATA.books || []).map((b) => b.type).filter(Boolean);
+    const types = ["全部"].concat(configured, present.filter((t) => configured.indexOf(t) === -1));
+    const uniq = types.filter((t, i) => types.indexOf(t) === i);
+    if (uniq.indexOf(activeType) === -1) activeType = "全部";
+
+    chipsEl.innerHTML = uniq
       .map(
         (t) =>
           '<button class="chip" type="button" aria-pressed="' + (t === activeType) + '" data-type="' + esc(t) + '">' + esc(t) + "</button>"

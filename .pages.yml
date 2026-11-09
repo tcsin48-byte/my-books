@@ -32,9 +32,9 @@ content:
         type: string
         description: 显示在书名下方。首页卡片会拼成「副标题 · 年份」。译作可以填原文书名。
       - name: type
-        label: 类型
+        label: 所属栏目
         type: string
-        description: 首页顶部的筛选按钮由这里的取值自动生成。同类作品请用完全相同的写法，统一写「散文」而不是「随笔」「散文集」混用，否则会多出几个重复按钮。
+        description: 首页顶部的筛选按钮由「站点信息 → 首页栏目」决定顺序，这里填其中一个（马华文学丛书 / 陈政欣丛书 / 纯电子书）。写法必须与栏目名完全一致，多一个空格就会多出一个按钮。
       - name: year
         label: 年份
         type: string
@@ -88,6 +88,11 @@ content:
         label: 一句话介绍
         type: string
         description: 首页标题下面那行小字，例如「小说 · 散文 · 翻译 · 评论」。别太长，一行放得下最好。
+      - name: sections
+        label: 首页栏目
+        type: string
+        list: true
+        description: 首页筛选按钮的内容和顺序，按这里的排列显示。每按一次回车加一个。栏目名要与书目里「所属栏目」的写法完全一致；没有书的栏目也会显示，点进去是空的。
       - name: intro
         label: 首页导语
         type: text
