@@ -349,6 +349,34 @@ button, input, select { font-family: var(--sans); font-size: 15px; }
 #viewer { position: absolute; inset: 0; }
 #viewer iframe { border: 0; }
 
+/* 翻页按钮 */
+.pager {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 5;
+  width: 42px;
+  height: 78px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: rgba(47, 74, 60, 0.1);
+  color: var(--green);
+  font-size: 30px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.pager:hover { background: rgba(47, 74, 60, 0.2); }
+.pager:active { background: rgba(47, 74, 60, 0.28); }
+.pager.prev { left: 6px; }
+.pager.next { right: 6px; }
+.pager[hidden] { display: none; }
+
 .reader-progress {
   height: 3px;
   background: var(--paper-3);

@@ -162,6 +162,10 @@
 
     /* ── PDF：直接用浏览器内嵌查看器 ── */
     function startPdf(url) {
+      const prevBtn = document.getElementById("prevPage");
+      const nextBtn = document.getElementById("nextPage");
+      if (prevBtn) prevBtn.hidden = true;
+      if (nextBtn) nextBtn.hidden = true;
       viewerEl.innerHTML = '<iframe class="pdf-frame" src="' + esc(url) + '#view=FitH" title="PDF 阅读器"></iframe>';
       progressBar.style.width = "100%";
       tocEl.innerHTML = '<p style="padding:10px;color:#6b7169;font-size:13px">PDF 为原版排版，可用右上角按钮下载到本地阅读。</p>';
@@ -190,12 +194,36 @@
       }
 
       const book = ePub(url);
+
+      /* 必须给像素尺寸：传 "100%" 时 epub.js 量不到实际宽高，
+         会把整本书排成一整页，next()/prev() 就没有可翻的页 */
+      function viewerSize() {
+        const r = viewerEl.getBoundingClientRect();
+        return {
+          width: Math.max(280, Math.round(r.width || window.innerWidth)),
+          height: Math.max(280, Math.round(r.height || window.innerHeight - 90)),
+        };
+      }
+      const vs = viewerSize();
+
       const rendition = book.renderTo("viewer", {
-        width: "100%",
-        height: "100%",
+        width: vs.width,
+        height: vs.height,
         flow: "paginated",
         spread: "none",
         allowScriptedContent: true,
+      });
+
+      /* 转屏 / 改窗口大小后重新分页，否则分页点会错位 */
+      let rzTimer = null;
+      window.addEventListener("resize", () => {
+        clearTimeout(rzTimer);
+        rzTimer = setTimeout(() => {
+          if (!readerEl.classList.contains("open")) return;
+          const r = viewerEl.getBoundingClientRect();
+          if (!r.width || !r.height) return;
+          rendition.resize(Math.round(r.width), Math.round(r.height));
+        }, 260);
       });
 
       const chapterTitles = {};
@@ -260,23 +288,60 @@
         }, 700);
       });
 
-      /* 点击两侧翻页；中间区域保留选中文字 */
+      /* 点击翻页：左侧 28% 回退，右侧与中间前进；另支持左右滑动 */
+      let suppressTapUntil = 0;
       rendition.hooks.content.register((contents) => {
         const doc = contents.document;
+        const win = contents.window;
+
         doc.addEventListener("click", (e) => {
-          const sel = contents.window && contents.window.getSelection ? contents.window.getSelection() : null;
+          if (Date.now() < suppressTapUntil) return;
+          const sel = win && win.getSelection ? win.getSelection() : null;
           if (sel && String(sel).trim()) return;
           hideQuoteBtn();
           const w = doc.documentElement.clientWidth || 800;
-          if (e.clientX < w * 0.22) rendition.prev();
-          else if (e.clientX > w * 0.78) rendition.next();
+          if (e.clientX < w * 0.28) rendition.prev();
+          else rendition.next();
         });
+
         doc.addEventListener("mouseup", () => {
-          if (contents.window && String(contents.window.getSelection()).trim().length > 4) {
+          if (win && String(win.getSelection()).trim().length > 4) {
             setTimeout(() => showQuoteBtn(), 40);
           }
         });
+
+        /* 平板、手机：左右滑动翻页 */
+        let sx = 0, sy = 0, st = 0;
+        doc.addEventListener("touchstart", (e) => {
+          if (e.touches.length !== 1) return;
+          sx = e.touches[0].clientX;
+          sy = e.touches[0].clientY;
+          st = Date.now();
+        }, { passive: true });
+
+        doc.addEventListener("touchend", (e) => {
+          if (!e.changedTouches || !e.changedTouches.length) return;
+          const dx = e.changedTouches[0].clientX - sx;
+          const dy = e.changedTouches[0].clientY - sy;
+          if (Date.now() - st > 900) return;
+          if (Math.abs(dx) < 45 || Math.abs(dx) < Math.abs(dy) * 1.3) return;
+          suppressTapUntil = Date.now() + 450;
+          if (dx < 0) rendition.next();
+          else rendition.prev();
+        }, { passive: true });
       });
+
+      /* 左右翻页按钮：点击区域出问题时仍有明确入口 */
+      const prevBtn = document.getElementById("prevPage");
+      const nextBtn = document.getElementById("nextPage");
+      if (prevBtn) {
+        prevBtn.hidden = false;
+        prevBtn.addEventListener("click", (e) => { e.stopPropagation(); rendition.prev(); });
+      }
+      if (nextBtn) {
+        nextBtn.hidden = false;
+        nextBtn.addEventListener("click", (e) => { e.stopPropagation(); rendition.next(); });
+      }
 
       /* 选中文字 → 生成卡片 */
       let lastQuote = "";
