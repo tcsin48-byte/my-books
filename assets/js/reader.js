@@ -172,8 +172,20 @@
       viewerEl.innerHTML = "";
       progressBar.style.width = "0%";
 
-      if (typeof ePub === "undefined") {
-        viewerEl.innerHTML = '<p class="empty" style="padding:24px">阅读组件未加载（assets/vendor/epub.min.js）。</p>';
+      function fail(msg) {
+        viewerEl.innerHTML =
+          "<div style='padding:32px 24px;max-width:540px;margin:0 auto;color:#3a4038;line-height:1.8'>" +
+          "<p style='font-family:var(--serif);font-size:17px;margin:0 0 10px'>这本书暂时无法在线阅读</p>" +
+          "<p style='color:#6b7169;font-size:13px;margin:0 0 18px;word-break:break-all'>" +
+          esc(String(msg || "")) +
+          "</p>" +
+          "<p><a href='" + esc(url) + "' download style='color:#2f4a3c;text-decoration:underline'>下载 EPUB 到本地阅读</a></p>" +
+          "</div>";
+      }
+
+      /* epub.js 只负责排版，解压 zip 交给 JSZip，两者缺一不可 */
+      if (typeof ePub === "undefined" || typeof JSZip === "undefined") {
+        fail("阅读组件未加载：assets/vendor/jszip.min.js 与 epub.min.js 需同时存在。");
         return;
       }
 
@@ -226,6 +238,8 @@
         const href = String(loc.start.href || "").split("#")[0];
         currentTitle = chapterTitles[href] || currentTitle;
       }
+
+      book.opened.catch((e) => fail(e && e.message));
 
       book.ready
         .then(() => book.locations.generate(1200))
@@ -300,9 +314,19 @@
 
       /* 定位：优先搜索跳转的章节，其次上次进度 */
       const saved = loadProgress(b.id);
-      if (startHref) rendition.display(startHref);
-      else if (saved && saved.cfi) rendition.display(saved.cfi);
-      else rendition.display();
+      const go = startHref
+        ? rendition.display(startHref)
+        : saved && saved.cfi
+        ? rendition.display(saved.cfi)
+        : rendition.display();
+      if (go && go.catch) {
+        go.catch(() => rendition.display().catch((e) => fail(e && e.message)));
+      }
+
+      /* 兜底：15 秒还没渲染出页面，就给出可操作的提示，别留一片空白 */
+      setTimeout(() => {
+        if (!viewerEl.querySelector("iframe")) fail("加载超时，可能是网络较慢或文件较大。");
+      }, 15000);
 
       document.querySelectorAll("[data-font]").forEach((btn) => {
         btn.addEventListener("click", () => {
