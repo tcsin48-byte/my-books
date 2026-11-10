@@ -430,12 +430,17 @@
       /* ── 版面 ── */
       function measure(keepAnchor) {
         const anchorId = keepAnchor ? currentAnchor() : "";
-        const W = Math.max(240, Math.floor(viewerEl.clientWidth));
+        const availW = Math.floor(viewerEl.clientWidth) || 320;
         const H = Math.max(240, Math.floor(viewerEl.clientHeight));
+        /* 屏幕再宽也不拉满：一行四十来字最舒服，整块版面居中 */
+        const W = Math.max(260, Math.min(availW, 720));
         st.W = W;
         st.H = H;
+        st.pager.style.width = W + "px";
+        st.pager.style.margin = "0 auto";
         st.flow.style.width = W + "px";
         st.flow.style.height = H + "px";
+        st.flow.style.setProperty("--ph", H + "px");
         st.flow.style.columnWidth = W + "px";
         st.flow.style.columnGap = "0px";
         st.flow.style.columnFill = "auto";
@@ -528,6 +533,8 @@
       };
       function applyTheme(name) {
         const t = THEMES[name] || THEMES.paper;
+        /* 版面居中后，两侧留白也要跟着主题走，否则夜间模式会白得刺眼 */
+        viewerEl.style.background = t.bg;
         if (!st.pager) return;
         st.pager.style.background = t.bg;
         st.pager.style.color = t.fg;

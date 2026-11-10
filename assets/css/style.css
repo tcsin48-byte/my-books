@@ -355,6 +355,7 @@ button, input, select { font-family: var(--sans); font-size: 15px; }
   inset: 0;
   width: auto;
   height: auto;
+  margin: 0 auto;
   overflow: hidden;
   font-family: var(--serif);
   font-size: 17px;
@@ -373,11 +374,19 @@ button, input, select { font-family: var(--sans); font-size: 15px; }
   will-change: transform;
 }
 #viewer .pager-flow .chapter {
-  padding: 0 6px;
+  padding: 22px clamp(12px, 3vw, 28px) 0;
 }
 /* 章节之间另起一栏；第一章不加，避免开头多出空栏 */
 #viewer .pager-flow .chapter + .chapter { break-before: column; }
-#viewer .pager-flow img { max-width: 100%; max-height: 100%; height: auto; }
+/* 图片按页高收缩，别让封面撑破一页（只露出上半截） */
+#viewer .pager-flow img {
+  max-width: 100% !important;
+  max-height: calc(var(--ph, 640px) - 48px) !important;
+  width: auto !important;
+  height: auto !important;
+  object-fit: contain;
+  margin: 0 auto;
+}
 #viewer .pager-flow h1, #viewer .pager-flow h2 { break-after: avoid; }
 #viewer .pager-flow a { color: var(--green); }
 
