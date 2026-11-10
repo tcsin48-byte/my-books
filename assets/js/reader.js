@@ -195,16 +195,17 @@
 
       const book = ePub(url);
 
-      /* 必须给像素尺寸：传 "100%" 时 epub.js 量不到实际宽高，
-         会把整本书排成一整页，next()/prev() 就没有可翻的页 */
+      /* 尺寸必须用 clientWidth/clientHeight 的整数：
+         getBoundingClientRect 带小数，取整后 iframe 可能比容器大零点几像素，
+         多出一条滚动条就会把列宽挤窄 —— 这是“翻页错位、来回跳”的常见原因 */
       function viewerSize() {
-        const r = viewerEl.getBoundingClientRect();
-        return {
-          width: Math.max(280, Math.round(r.width || window.innerWidth)),
-          height: Math.max(280, Math.round(r.height || window.innerHeight - 90)),
-        };
+        const w = viewerEl.clientWidth || window.innerWidth;
+        const h = viewerEl.clientHeight || window.innerHeight - 90;
+        return { width: Math.max(280, Math.floor(w)), height: Math.max(280, Math.floor(h)) };
       }
       const vs = viewerSize();
+      let curW = vs.width;
+      let curH = vs.height;
 
       const rendition = book.renderTo("viewer", {
         width: vs.width,
@@ -214,16 +215,47 @@
         allowScriptedContent: true,
       });
 
-      /* 转屏 / 改窗口大小后重新分页，否则分页点会错位 */
+      /* 一次点击/滑动只翻一页：连点两次位移叠加就会看起来“跳页” */
+      let lastTurn = 0;
+      let pct = 0;
+      function turn(dir) {
+        const now = Date.now();
+        if (now - lastTurn < 400) return;
+        const total = book.locations.length();
+        if (total) {
+          if (dir > 0 && pct > 0.9999) return;
+          if (dir < 0 && pct <= 0) return;
+        }
+        lastTurn = now;
+        if (dir > 0) rendition.next();
+        else rendition.prev();
+      }
+
+      /* 只在尺寸真的变了才重排（转屏 / 改窗口）。
+         原来监听 resize 无条件 resize，手机上地址栏收放都会触发，
+         重排后当前页位置被重置 → 读起来就像在几页之间来回跳 */
       let rzTimer = null;
+      function syncSize() {
+        if (!readerEl.classList.contains("open")) return;
+        if (Date.now() - lastTurn < 600) { rzTimer = setTimeout(syncSize, 400); return; }
+        const w = viewerEl.clientWidth;
+        const h = viewerEl.clientHeight;
+        if (!w || !h) return;
+        if (Math.abs(w - curW) < 8 && Math.abs(h - curH) < 8) return;
+        let cfi = null;
+        try { cfi = rendition.currentLocation().start.cfi; } catch (e) {}
+        curW = Math.floor(w);
+        curH = Math.floor(h);
+        rendition.resize(curW, curH);
+        if (cfi) { try { rendition.display(cfi); } catch (e) {} }
+      }
       window.addEventListener("resize", () => {
         clearTimeout(rzTimer);
-        rzTimer = setTimeout(() => {
-          if (!readerEl.classList.contains("open")) return;
-          const r = viewerEl.getBoundingClientRect();
-          if (!r.width || !r.height) return;
-          rendition.resize(Math.round(r.width), Math.round(r.height));
-        }, 260);
+        rzTimer = setTimeout(syncSize, 450);
+      });
+      window.addEventListener("orientationchange", () => {
+        clearTimeout(rzTimer);
+        rzTimer = setTimeout(syncSize, 700);
       });
 
       const chapterTitles = {};
@@ -253,15 +285,25 @@
         });
       });
 
-      /* 进度 */
-      let pct = 0;
+      /* 进度与页数 */
+      const pageInfoEl = document.getElementById("pageInfo");
+      function setPageInfo(txt) {
+        if (pageInfoEl) pageInfoEl.textContent = txt || "";
+      }
       function updateProgress() {
         const loc = rendition.currentLocation();
         if (!loc || !loc.start) return;
         try {
           pct = book.locations.percentageFromCfi(loc.start.cfi) || 0;
-        } catch (e) {}
+        } catch (e) { pct = 0; }
         progressBar.style.width = Math.max(0, Math.min(1, pct)) * 100 + "%";
+
+        const total = book.locations.length();
+        if (total) {
+          let idx = -1;
+          try { idx = book.locations.locationFromCfi(loc.start.cfi); } catch (e) {}
+          if (idx >= 0) setPageInfo("第 " + (idx + 1) + " / " + total + " 页");
+        }
 
         const href = String(loc.start.href || "").split("#")[0];
         currentTitle = chapterTitles[href] || currentTitle;
@@ -269,14 +311,9 @@
 
       book.opened.catch((e) => fail(e && e.message));
 
-      book.ready
-        .then(() => book.locations.generate(1200))
-        .then(() => updateProgress())
-        .catch(() => {});
-
       let saveTimer = null;
       rendition.on("relocated", (loc) => {
-        if (book.locations.length()) updateProgress();
+        updateProgress();
         if (!loc || !loc.start) return;
         clearTimeout(saveTimer);
         saveTimer = setTimeout(() => {
@@ -285,10 +322,12 @@
             pct: pct,
             at: new Date().toISOString().slice(0, 10),
           });
-        }, 700);
+        }, 900);
       });
 
-      /* 点击翻页：左侧 28% 回退，右侧与中间前进；另支持左右滑动 */
+      /* 点击只前进：整屏轻点翻下一页。
+         上一页交给左侧 ‹ 按钮、向右滑动、← 键 —— 不再用“点左半边回退”，
+         手指稍有偏差就退回上一页，正是“来回跳”的来源 */
       let suppressTapUntil = 0;
       rendition.hooks.content.register((contents) => {
         const doc = contents.document;
@@ -298,16 +337,16 @@
           if (Date.now() < suppressTapUntil) return;
           const sel = win && win.getSelection ? win.getSelection() : null;
           if (sel && String(sel).trim()) return;
+          /* 点书里的链接（目录、注释）不当作翻页 */
+          const t = e.target;
+          if (t && t.closest && t.closest("a")) return;
           hideQuoteBtn();
-          const w = doc.documentElement.clientWidth || 800;
-          if (e.clientX < w * 0.28) rendition.prev();
-          else rendition.next();
+          turn(1);
         });
 
         doc.addEventListener("mouseup", () => {
-          if (win && String(win.getSelection()).trim().length > 4) {
-            setTimeout(() => showQuoteBtn(), 40);
-          }
+          const sel = win && win.getSelection ? String(win.getSelection()).trim() : "";
+          if (sel.length > 4) setTimeout(showQuoteBtn, 40);
         });
 
         /* 平板、手机：左右滑动翻页 */
@@ -323,11 +362,10 @@
           if (!e.changedTouches || !e.changedTouches.length) return;
           const dx = e.changedTouches[0].clientX - sx;
           const dy = e.changedTouches[0].clientY - sy;
-          if (Date.now() - st > 900) return;
-          if (Math.abs(dx) < 45 || Math.abs(dx) < Math.abs(dy) * 1.3) return;
-          suppressTapUntil = Date.now() + 450;
-          if (dx < 0) rendition.next();
-          else rendition.prev();
+          if (Date.now() - st > 800) return;
+          if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+          suppressTapUntil = Date.now() + 500;
+          turn(dx < 0 ? 1 : -1);
         }, { passive: true });
       });
 
@@ -336,11 +374,11 @@
       const nextBtn = document.getElementById("nextPage");
       if (prevBtn) {
         prevBtn.hidden = false;
-        prevBtn.addEventListener("click", (e) => { e.stopPropagation(); rendition.prev(); });
+        prevBtn.addEventListener("click", (e) => { e.stopPropagation(); turn(-1); });
       }
       if (nextBtn) {
         nextBtn.hidden = false;
-        nextBtn.addEventListener("click", (e) => { e.stopPropagation(); rendition.next(); });
+        nextBtn.addEventListener("click", (e) => { e.stopPropagation(); turn(1); });
       }
 
       /* 选中文字 → 生成卡片 */
@@ -358,11 +396,18 @@
       /* 键盘 */
       function onKey(e) {
         if (!readerEl.classList.contains("open")) return;
-        if (e.key === "ArrowRight" || e.key === " ") rendition.next();
-        if (e.key === "ArrowLeft") rendition.prev();
+        if (e.key === "ArrowRight" || e.key === " ") turn(1);
+        if (e.key === "ArrowLeft") turn(-1);
         if (e.key === "Escape") closeReader();
       }
       document.addEventListener("keydown", onKey);
+      /* 焦点在正文 iframe 里时，父页面的 keydown 收不到，单独绑一份 */
+      rendition.hooks.content.register((contents) => {
+        contents.document.addEventListener("keydown", (e) => {
+          if (e.key === "ArrowRight" || e.key === " " || e.key === "PageDown") { e.preventDefault(); turn(1); }
+          if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); turn(-1); }
+        });
+      });
 
       /* 设置：字号与主题 */
       let fontPct = 100;
@@ -377,16 +422,22 @@
       rendition.themes.select("paper");
       rendition.themes.fontSize(fontPct + "%");
 
-      /* 定位：优先搜索跳转的章节，其次上次进度 */
+      /* 先算好全书分页（locations），再显示第一屏。
+         以前是边显示边 generate，两者抢同一份排版，翻页时机、页数都会乱 */
       const saved = loadProgress(b.id);
-      const go = startHref
-        ? rendition.display(startHref)
-        : saved && saved.cfi
-        ? rendition.display(saved.cfi)
-        : rendition.display();
-      if (go && go.catch) {
-        go.catch(() => rendition.display().catch((e) => fail(e && e.message)));
+      const target = startHref || (saved && saved.cfi) || null;
+
+      function firstDisplay() {
+        const p = target ? rendition.display(target) : rendition.display();
+        return p.then(() => updateProgress())
+          .catch(() => rendition.display().then(updateProgress));
       }
+
+      book.ready
+        .then(() => book.locations.generate(800))
+        .catch(() => null)
+        .then(firstDisplay)
+        .catch((e) => fail(e && e.message));
 
       /* 兜底：15 秒还没渲染出页面，就给出可操作的提示，别留一片空白 */
       setTimeout(() => {
