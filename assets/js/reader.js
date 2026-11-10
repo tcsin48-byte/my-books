@@ -574,7 +574,8 @@
       function bindPager() {
         const pager = st.pager;
 
-        pager.addEventListener("click", (e) => {
+        /* 绑在 #viewer 上：版面居中后两侧留白也算翻页区 */
+        viewerEl.addEventListener("click", (e) => {
           if (Date.now() < suppressClickUntil) return;
           const t = e.target;
           const link = t && t.closest ? t.closest("a[data-jump]") : null;
@@ -613,14 +614,14 @@
         });
 
         let sx = 0, sy = 0, stt = 0;
-        pager.addEventListener("touchstart", (e) => {
+        viewerEl.addEventListener("touchstart", (e) => {
           if (e.touches.length !== 1) return;
           sx = e.touches[0].clientX;
           sy = e.touches[0].clientY;
           stt = Date.now();
         }, { passive: true });
 
-        pager.addEventListener("touchend", (e) => {
+        viewerEl.addEventListener("touchend", (e) => {
           if (!e.changedTouches || !e.changedTouches.length) return;
           const dx = e.changedTouches[0].clientX - sx;
           const dy = e.changedTouches[0].clientY - sy;
