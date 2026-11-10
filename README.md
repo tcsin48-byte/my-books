@@ -15,9 +15,22 @@
 2. 在 `data/books.json` 里加一条记录（字段照抄现有条目）
 3. 提交
 
+阅读器是通用的：解压、切栏、翻页都由 `assets/js/reader.js` 统一处理，加书不用改任何代码。
+
 正文索引由 GitHub Actions 自动重建，不用手动跑脚本。推送后去 **Actions** 标签看 `重建全文搜索索引` 这一次运行，绿勾即完成。
 
 不想碰 JSON：用 <https://app.pagescms.org> 登录，表单填完保存即可，索引同样自动重建。
+
+### 什么样的 epub 能直接用
+
+| 类型 | 结果 |
+|---|---|
+| 普通流式 epub（纯文字、图文混排） | 直接可读 |
+| 固定版式 / 扫描版 / 绘本（fixed-layout） | 会排版错乱，建议只放 PDF |
+| 带 DRM 加密的 epub | 解不开，需先去掉 DRM |
+| 目录、字体、插图 | 正常，字体和图片会自动内联 |
+
+偶尔遇到某本书的封面是 CSS 背景图而不是 `<img>`，可能仍会超出页面；把书发我，改一行样式就行。
 
 ## 目录
 
@@ -30,7 +43,8 @@
 | `data/site.json` | 作者名、导语、版权 |
 | `data/search-index.json` | 正文索引（Actions 自动生成，勿手改） |
 | `books/` | epub / pdf 文件 |
-| `assets/vendor/epub.min.js` | 阅读器内核（本地存放，不依赖 CDN） |
+| `assets/vendor/jszip.min.js` | 解压 epub 用（唯一的第三方依赖） |
+| `assets/js/reader.js` | 阅读器：解析 epub、切栏分页、翻页、记进度、做卡片 |
 | `.github/workflows/build-search-index.yml` | 加书后自动重建索引 |
 | `.pages.yml` | Pages CMS 后台配置 |
 | `sw.js` / `manifest.json` | 离线缓存与主屏幕安装 |
