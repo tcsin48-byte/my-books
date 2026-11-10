@@ -30,7 +30,7 @@
     try {
       const raw = localStorage.getItem(pKey(bid));
       const obj = raw ? JSON.parse(raw) : null;
-      return obj && obj.cfi ? obj : null;
+      return obj && (obj.anchor || obj.cfi) ? obj : null;
     } catch (e) {
       return null;
     }
@@ -171,10 +171,44 @@
       tocEl.innerHTML = '<p style="padding:10px;color:#6b7169;font-size:13px">PDF 为原版排版，可用右上角按钮下载到本地阅读。</p>';
     }
 
-    /* ── EPUB：epub.js ── */
+    /* ── EPUB：自建分栏分页器 ──
+       不用 epub.js 的分页器。它的 default manager 靠「scrollLeft 取整吸附」定页
+       （needsSnap: scrollLeft % pageWidth !== 0），列宽和容器差一点点，
+       每次翻页都会被吸回上一页 —— 表现就是页码在 1、2、3 之间来回跳。
+       这里自己切栏：一栏即一页，翻页只平移一栏，总页数由 scrollWidth 算出，不吸附。 */
+
+    const EPUB_MIME = {
+      jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", gif: "image/gif",
+      webp: "image/webp", svg: "image/svg+xml", css: "text/css",
+      ttf: "font/ttf", otf: "font/otf", woff: "font/woff", woff2: "font/woff2",
+    };
+    const mimeOfPath = (p) =>
+      EPUB_MIME[(String(p).split(".").pop() || "").toLowerCase()] || "application/octet-stream";
+
+    function joinPath(base, rel) {
+      const parts = (base ? String(base).split("/") : []).concat(String(rel).split("/"));
+      const out = [];
+      parts.forEach((p) => {
+        if (!p || p === ".") return;
+        if (p === "..") out.pop();
+        else out.push(p);
+      });
+      return out.join("/");
+    }
+
+    const dirOfPath = (p) => {
+      const s = String(p);
+      const i = s.lastIndexOf("/");
+      return i < 0 ? "" : s.slice(0, i);
+    };
+
     function startEpub(url) {
       viewerEl.innerHTML = "";
       progressBar.style.width = "0%";
+
+      const pageInfoEl = document.getElementById("pageInfo");
+      const setPageInfo = (t) => { if (pageInfoEl) pageInfoEl.textContent = t || ""; };
+      setPageInfo("");
 
       function fail(msg) {
         viewerEl.innerHTML =
@@ -187,189 +221,450 @@
           "</div>";
       }
 
-      /* epub.js 只负责排版，解压 zip 交给 JSZip，两者缺一不可 */
-      if (typeof ePub === "undefined" || typeof JSZip === "undefined") {
-        fail("阅读组件未加载：assets/vendor/jszip.min.js 与 epub.min.js 需同时存在。");
+      if (typeof JSZip === "undefined") {
+        fail("阅读组件未加载：assets/vendor/jszip.min.js 缺失。");
         return;
       }
 
-      const book = ePub(url);
+      const st = {
+        pager: null, flow: null, W: 0, H: 0,
+        pages: 1, page: 0, fontPct: 100,
+        chapters: [], cssText: "",
+      };
 
-      /* 尺寸必须用 clientWidth/clientHeight 的整数：
-         getBoundingClientRect 带小数，取整后 iframe 可能比容器大零点几像素，
-         多出一条滚动条就会把列宽挤窄 —— 这是“翻页错位、来回跳”的常见原因 */
-      function viewerSize() {
-        const w = viewerEl.clientWidth || window.innerWidth;
-        const h = viewerEl.clientHeight || window.innerHeight - 90;
-        return { width: Math.max(280, Math.floor(w)), height: Math.max(280, Math.floor(h)) };
-      }
-      const vs = viewerSize();
-      let curW = vs.width;
-      let curH = vs.height;
-
-      const rendition = book.renderTo("viewer", {
-        width: vs.width,
-        height: vs.height,
-        flow: "paginated",
-        spread: "none",
-        allowScriptedContent: true,
-      });
-
-      /* 一次点击/滑动只翻一页：连点两次位移叠加就会看起来“跳页” */
+      let zip = null;
+      let themeName = "paper";
       let lastTurn = 0;
-      let pct = 0;
-      function turn(dir) {
-        const now = Date.now();
-        if (now - lastTurn < 400) return;
-        const total = book.locations.length();
-        if (total) {
-          if (dir > 0 && pct > 0.9999) return;
-          if (dir < 0 && pct <= 0) return;
-        }
-        lastTurn = now;
-        if (dir > 0) rendition.next();
-        else rendition.prev();
-      }
-
-      /* 只在尺寸真的变了才重排（转屏 / 改窗口）。
-         原来监听 resize 无条件 resize，手机上地址栏收放都会触发，
-         重排后当前页位置被重置 → 读起来就像在几页之间来回跳 */
-      let rzTimer = null;
-      function syncSize() {
-        if (!readerEl.classList.contains("open")) return;
-        if (Date.now() - lastTurn < 600) { rzTimer = setTimeout(syncSize, 400); return; }
-        const w = viewerEl.clientWidth;
-        const h = viewerEl.clientHeight;
-        if (!w || !h) return;
-        if (Math.abs(w - curW) < 8 && Math.abs(h - curH) < 8) return;
-        let cfi = null;
-        try { cfi = rendition.currentLocation().start.cfi; } catch (e) {}
-        curW = Math.floor(w);
-        curH = Math.floor(h);
-        rendition.resize(curW, curH);
-        if (cfi) { try { rendition.display(cfi); } catch (e) {} }
-      }
-      window.addEventListener("resize", () => {
-        clearTimeout(rzTimer);
-        rzTimer = setTimeout(syncSize, 450);
-      });
-      window.addEventListener("orientationchange", () => {
-        clearTimeout(rzTimer);
-        rzTimer = setTimeout(syncSize, 700);
-      });
-
-      const chapterTitles = {};
+      let suppressClickUntil = 0;
+      let saveTimer = null;
+      let lastQuote = "";
       let currentTitle = "";
 
-      /* 目录 */
-      book.loaded.navigation.then((nav) => {
-        const walk = (items, depth) => {
-          items.forEach((item) => {
-            const label = (item.label || "").trim();
-            chapterTitles[String(item.href).split("#")[0]] = label;
-            rows.push(
-              '<a class="' + (depth ? "sub" : "") + '" href="#" data-href="' + esc(item.href) + '">' + esc(label) + "</a>"
-            );
-            if (item.subitems && item.subitems.length) walk(item.subitems, depth + 1);
-          });
-        };
-        const rows = [];
-        walk(nav.toc || [], 0);
-        tocEl.innerHTML = "<h3>目录</h3>" + rows.join("");
-        tocEl.querySelectorAll("a[data-href]").forEach((a) => {
-          a.addEventListener("click", (e) => {
-            e.preventDefault();
-            rendition.display(a.dataset.href);
-            closeDrawer();
-          });
+      /* ── 解压 + 解析 ── */
+      async function parseBook() {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("下载失败 HTTP " + res.status);
+        zip = await JSZip.loadAsync(await res.arrayBuffer());
+
+        const contFile = zip.file("META-INF/container.xml");
+        if (!contFile) throw new Error("不是有效的 EPUB：缺少 META-INF/container.xml");
+        const cont = new DOMParser().parseFromString(await contFile.async("string"), "application/xml");
+        const rootfile = cont.getElementsByTagName("rootfile")[0];
+        if (!rootfile) throw new Error("EPUB 缺少 OPF 索引");
+        const opfPath = rootfile.getAttribute("full-path");
+        const opfDir = dirOfPath(opfPath);
+        const opfFile = zip.file(opfPath);
+        if (!opfFile) throw new Error("找不到 OPF 文件：" + opfPath);
+        const opf = new DOMParser().parseFromString(await opfFile.async("string"), "application/xml");
+
+        const items = {};
+        Array.prototype.forEach.call(opf.getElementsByTagName("item"), (el) => {
+          const id = el.getAttribute("id");
+          if (!id) return;
+          items[id] = {
+            href: joinPath(opfDir, el.getAttribute("href") || ""),
+            props: el.getAttribute("properties") || "",
+            type: el.getAttribute("media-type") || "",
+          };
         });
-      });
 
-      /* 进度与页数 */
-      const pageInfoEl = document.getElementById("pageInfo");
-      function setPageInfo(txt) {
-        if (pageInfoEl) pageInfoEl.textContent = txt || "";
-      }
-      function updateProgress() {
-        const loc = rendition.currentLocation();
-        if (!loc || !loc.start) return;
-        try {
-          pct = book.locations.percentageFromCfi(loc.start.cfi) || 0;
-        } catch (e) { pct = 0; }
-        progressBar.style.width = Math.max(0, Math.min(1, pct)) * 100 + "%";
+        const spine = Array.prototype.map
+          .call(opf.getElementsByTagName("itemref"), (el) => items[el.getAttribute("idref")])
+          .filter((it) => it && it.href && (it.type === "application/xhtml+xml" || /\.x?html$/.test(it.href)));
+        if (!spine.length) throw new Error("EPUB 里没有可显示的正文");
 
-        const total = book.locations.length();
-        if (total) {
-          let idx = -1;
-          try { idx = book.locations.locationFromCfi(loc.start.cfi); } catch (e) {}
-          if (idx >= 0) setPageInfo("第 " + (idx + 1) + " / " + total + " 页");
+        const idxOf = {};
+        spine.forEach((it, i) => { idxOf[it.href] = i; });
+
+        /* 素材 → blob 地址，避免相对路径失效 */
+        const blobs = {};
+        async function asset(p) {
+          if (p in blobs) return blobs[p];
+          const f = zip.file(p);
+          if (!f) { blobs[p] = ""; return ""; }
+          const raw = await f.async("blob");
+          const u = URL.createObjectURL(new Blob([raw], { type: mimeOfPath(p) }));
+          blobs[p] = u;
+          return u;
         }
 
-        const href = String(loc.start.href || "").split("#")[0];
-        currentTitle = chapterTitles[href] || currentTitle;
+        const cssSeen = {};
+        let cssText = "";
+        const chapters = [];
+
+        for (let i = 0; i < spine.length; i++) {
+          const it = spine[i];
+          const file = zip.file(it.href);
+          if (!file) continue;
+          const text = await file.async("string");
+          let doc = new DOMParser().parseFromString(text, "application/xhtml+xml");
+          if (!doc.getElementsByTagName("body").length) {
+            doc = new DOMParser().parseFromString(text, "text/html");
+          }
+          const body = doc.getElementsByTagName("body")[0];
+          if (!body) continue;
+          const chDir = dirOfPath(it.href);
+
+          /* 样式表：读出来内联，url() 换成 blob */
+          const links = Array.prototype.slice.call(doc.getElementsByTagName("link"));
+          for (const l of links) {
+            if (!/stylesheet/i.test(l.getAttribute("rel") || "")) continue;
+            const p = joinPath(chDir, l.getAttribute("href") || "");
+            if (!p || cssSeen[p]) continue;
+            cssSeen[p] = true;
+            const cf = zip.file(p);
+            if (!cf) continue;
+            let css = await cf.async("string");
+            const urls = css.match(/url\(([^)]+)\)/g) || [];
+            for (const raw of urls) {
+              const m = raw.match(/url\(['"]?([^'")]+)['"]?\)/);
+              if (!m) continue;
+              const ref = m[1];
+              if (/^(data:|https?:|blob:|#)/i.test(ref)) continue;
+              const u = await asset(joinPath(dirOfPath(p), ref.split(/[?#]/)[0]));
+              if (u) css = css.split(raw).join("url('" + u + "')");
+            }
+            cssText += "\n" + css;
+          }
+
+          Array.prototype.forEach.call(body.getElementsByTagName("script"), (s) => {
+            if (s.parentNode) s.parentNode.removeChild(s);
+          });
+
+          const imgs = Array.prototype.slice.call(body.getElementsByTagName("img"));
+          for (const img of imgs) {
+            const src = img.getAttribute("src") || "";
+            if (!src || /^(data:|https?:|blob:)/i.test(src)) continue;
+            const u = await asset(joinPath(chDir, src.split(/[?#]/)[0]));
+            if (u) img.setAttribute("src", u);
+            else img.removeAttribute("src");
+          }
+
+          const svgImgs = Array.prototype.slice.call(body.getElementsByTagName("image"));
+          for (const img of svgImgs) {
+            const src =
+              img.getAttributeNS("http://www.w3.org/1999/xlink", "href") ||
+              img.getAttribute("xlink:href") || img.getAttribute("href") || "";
+            if (!src || /^(data:|https?:|blob:)/i.test(src)) continue;
+            const u = await asset(joinPath(chDir, src.split(/[?#]/)[0]));
+            if (u) {
+              try { img.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", u); } catch (e) {}
+              img.setAttribute("href", u);
+            }
+          }
+
+          Array.prototype.forEach.call(body.getElementsByTagName("a"), (a) => {
+            const href = a.getAttribute("href") || "";
+            if (!href) return;
+            if (/^(mailto:|tel:|https?:)/i.test(href)) {
+              a.setAttribute("target", "_blank");
+              a.setAttribute("rel", "noopener");
+              return;
+            }
+            const hash = href.indexOf("#");
+            const pathPart = hash < 0 ? href : href.slice(0, hash);
+            const frag = hash < 0 ? "" : href.slice(hash + 1);
+            let target = i;
+            if (pathPart) {
+              const p = joinPath(chDir, pathPart);
+              if (idxOf[p] != null) target = idxOf[p];
+            }
+            const id = "c" + target + "_" + frag;
+            a.setAttribute("href", "#" + id);
+            a.setAttribute("data-jump", id);
+          });
+
+          /* id 加章节前缀，避免不同章节重名 */
+          Array.prototype.forEach.call(body.querySelectorAll("[id]"), (el) => {
+            el.setAttribute("id", "c" + i + "_" + el.getAttribute("id"));
+          });
+
+          let title = "";
+          const h = body.querySelector("h1, h2, h3");
+          if (h && h.textContent) title = h.textContent.replace(/\s+/g, " ").trim();
+          if (!title) title = "第 " + (i + 1) + " 节";
+
+          chapters.push({ html: body.innerHTML, title: title, href: it.href });
+        }
+
+        if (!chapters.length) throw new Error("EPUB 正文为空");
+        st.chapters = chapters;
+        st.cssText = cssText;
+
+        /* 目录 */
+        const toc = [];
+        const navIt = Object.keys(items).map((k) => items[k]).find((it) => it && /nav/.test(it.props));
+        if (navIt) {
+          const f = zip.file(navIt.href);
+          if (f) {
+            const navDoc = new DOMParser().parseFromString(await f.async("string"), "application/xhtml+xml");
+            const navDir = dirOfPath(navIt.href);
+            Array.prototype.forEach.call(navDoc.getElementsByTagName("a"), (a) => {
+              const href = a.getAttribute("href") || "";
+              const label = (a.textContent || "").replace(/\s+/g, " ").trim();
+              if (!href || !label) return;
+              const hash = href.indexOf("#");
+              const pathPart = hash < 0 ? href : href.slice(0, hash);
+              const frag = hash < 0 ? "" : href.slice(hash + 1);
+              const p = pathPart ? joinPath(navDir, pathPart) : navIt.href;
+              const idx = idxOf[p];
+              if (idx == null) return;
+              toc.push({ label: label, id: "c" + idx + "_" + frag });
+            });
+          }
+        }
+        if (!toc.length) {
+          chapters.forEach((c, i) => toc.push({ label: c.title, id: "c" + i + "_" }));
+        }
+        st.toc = toc;
       }
 
-      book.opened.catch((e) => fail(e && e.message));
+      /* ── 版面 ── */
+      function measure(keepAnchor) {
+        const anchorId = keepAnchor ? currentAnchor() : "";
+        const W = Math.max(240, Math.floor(viewerEl.clientWidth));
+        const H = Math.max(240, Math.floor(viewerEl.clientHeight));
+        st.W = W;
+        st.H = H;
+        st.flow.style.width = W + "px";
+        st.flow.style.height = H + "px";
+        st.flow.style.columnWidth = W + "px";
+        st.flow.style.columnGap = "0px";
+        st.flow.style.columnFill = "auto";
+        st.flow.style.fontSize = st.fontPct + "%";
 
-      let saveTimer = null;
-      rendition.on("relocated", (loc) => {
-        updateProgress();
-        if (!loc || !loc.start) return;
+        /* 总宽 = 所有栏的宽度之和。scrollWidth 是首选，
+           再用最后一章的右边界兜底（不同浏览器对多栏 scrollWidth 的实现有差异） */
+        let total = st.flow.scrollWidth || 0;
+        const fr = st.flow.getBoundingClientRect();
+        const secs = st.flow.querySelectorAll(".chapter");
+        const lastSec = secs[secs.length - 1];
+        if (lastSec) {
+          const lr = lastSec.getBoundingClientRect();
+          total = Math.max(total, lr.right - fr.left);
+        }
+        st.pages = Math.max(1, Math.round(total / W));
+        goto(anchorId ? columnOf(anchorId) : Math.min(st.page, st.pages - 1));
+      }
+
+      function columnOf(id) {
+        const el = document.getElementById(id);
+        if (!el) return 0;
+        const left = el.getBoundingClientRect().left - st.flow.getBoundingClientRect().left;
+        return Math.max(0, Math.floor(left / st.W + 0.02));
+      }
+
+      function goto(p) {
+        st.page = Math.max(0, Math.min(st.pages - 1, Math.round(p || 0)));
+        st.flow.style.transform = "translate3d(" + (-st.page * st.W) + "px,0,0)";
+        render();
+      }
+
+      function currentAnchor() {
+        if (!st.pager || !st.pages) return "";
+        const r = st.pager.getBoundingClientRect();
+        let el = document.elementFromPoint(r.left + 10, r.top + 10);
+        while (el && !el.id && el !== st.flow) el = el.parentElement;
+        return el && el.id ? el.id : "";
+      }
+
+      function chapterIndexAt(el) {
+        const sec = el && el.closest ? el.closest("section[data-ch]") : null;
+        return sec ? Number(sec.getAttribute("data-ch")) : -1;
+      }
+
+      function render() {
+        const pct = st.pages > 1 ? st.page / (st.pages - 1) : 1;
+        progressBar.style.width = (pct * 100).toFixed(2) + "%";
+        setPageInfo("第 " + (st.page + 1) + " / " + st.pages + " 页");
+
+        const aid = currentAnchor();
+        const ci = aid ? chapterIndexAt(document.getElementById(aid)) : -1;
+        if (ci >= 0 && st.chapters[ci] && st.chapters[ci].title) currentTitle = st.chapters[ci].title;
+
         clearTimeout(saveTimer);
         saveTimer = setTimeout(() => {
           saveProgress(b.id, {
-            cfi: loc.start.cfi,
-            pct: pct,
+            anchor: aid || "",
+            pct: st.pages > 1 ? st.page / (st.pages - 1) : 0,
             at: new Date().toISOString().slice(0, 10),
           });
         }, 900);
-      });
+      }
 
-      /* 点击只前进：整屏轻点翻下一页。
-         上一页交给左侧 ‹ 按钮、向右滑动、← 键 —— 不再用“点左半边回退”，
-         手指稍有偏差就退回上一页，正是“来回跳”的来源 */
-      let suppressTapUntil = 0;
-      rendition.hooks.content.register((contents) => {
-        const doc = contents.document;
-        const win = contents.window;
+      function jumpTo(id) {
+        if (!id) return;
+        let el = document.getElementById(id);
+        if (!el) el = document.getElementById(id.replace(/_+$/, ""));
+        if (!el) return;
+        const left = el.getBoundingClientRect().left - st.flow.getBoundingClientRect().left;
+        goto(Math.floor(left / st.W + 0.02));
+      }
 
-        doc.addEventListener("click", (e) => {
-          if (Date.now() < suppressTapUntil) return;
-          const sel = win && win.getSelection ? win.getSelection() : null;
-          if (sel && String(sel).trim()) return;
-          /* 点书里的链接（目录、注释）不当作翻页 */
+      function turn(dir) {
+        const now = Date.now();
+        if (now - lastTurn < 120) return;
+        lastTurn = now;
+        goto(st.page + dir);
+      }
+
+      /* ── 主题 ── */
+      const THEMES = {
+        paper: { bg: "#fdfbf4", fg: "#1f2320" },
+        plain: { bg: "#ffffff", fg: "#111111" },
+        night: { bg: "#16181a", fg: "#c3c8c3" },
+      };
+      function applyTheme(name) {
+        const t = THEMES[name] || THEMES.paper;
+        if (!st.pager) return;
+        st.pager.style.background = t.bg;
+        st.pager.style.color = t.fg;
+      }
+
+      /* ── 挂载 ── */
+      function mount() {
+        viewerEl.innerHTML = "";
+        const pager = document.createElement("div");
+        pager.className = "pager";
+        const flow = document.createElement("div");
+        flow.className = "pager-flow";
+        st.chapters.forEach((c, i) => {
+          const sec = document.createElement("section");
+          sec.className = "chapter";
+          sec.setAttribute("data-ch", String(i));
+          sec.innerHTML = c.html;
+          flow.appendChild(sec);
+        });
+        pager.appendChild(flow);
+        viewerEl.appendChild(pager);
+        st.pager = pager;
+        st.flow = flow;
+
+        if (st.cssText) {
+          const s = document.createElement("style");
+          s.textContent = st.cssText;
+          flow.insertBefore(s, flow.firstChild);
+        }
+        applyTheme(themeName);
+        measure(false);
+      }
+
+      /* ── 交互 ── */
+      function bindPager() {
+        const pager = st.pager;
+
+        pager.addEventListener("click", (e) => {
+          if (Date.now() < suppressClickUntil) return;
           const t = e.target;
-          if (t && t.closest && t.closest("a")) return;
+          const link = t && t.closest ? t.closest("a[data-jump]") : null;
+          if (link) {
+            e.preventDefault();
+            hideQuoteBtn();
+            jumpTo(link.getAttribute("data-jump"));
+            return;
+          }
+          if (t && t.closest && t.closest("a[href^='http']")) return;
+          const sel = window.getSelection ? window.getSelection() : null;
+          if (sel && String(sel).trim()) return;
           hideQuoteBtn();
           turn(1);
         });
 
-        doc.addEventListener("mouseup", () => {
-          const sel = win && win.getSelection ? String(win.getSelection()).trim() : "";
-          if (sel.length > 4) setTimeout(showQuoteBtn, 40);
+        pager.addEventListener("mouseup", () => {
+          const sel = window.getSelection ? String(window.getSelection()).trim() : "";
+          if (sel.length > 4) {
+            lastQuote = sel;
+            setTimeout(showQuoteBtn, 40);
+          }
         });
 
-        /* 平板、手机：左右滑动翻页 */
-        let sx = 0, sy = 0, st = 0;
-        doc.addEventListener("touchstart", (e) => {
+        let sx = 0, sy = 0, stt = 0;
+        pager.addEventListener("touchstart", (e) => {
           if (e.touches.length !== 1) return;
           sx = e.touches[0].clientX;
           sy = e.touches[0].clientY;
-          st = Date.now();
+          stt = Date.now();
         }, { passive: true });
 
-        doc.addEventListener("touchend", (e) => {
+        pager.addEventListener("touchend", (e) => {
           if (!e.changedTouches || !e.changedTouches.length) return;
           const dx = e.changedTouches[0].clientX - sx;
           const dy = e.changedTouches[0].clientY - sy;
-          if (Date.now() - st > 800) return;
-          if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
-          suppressTapUntil = Date.now() + 500;
+          if (Date.now() - stt > 800) return;
+          if (Math.abs(dx) < 55 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+          suppressClickUntil = Date.now() + 500;
           turn(dx < 0 ? 1 : -1);
         }, { passive: true });
+      }
+
+      function renderToc() {
+        if (!st.toc.length) {
+          tocEl.innerHTML = '<p style="padding:12px;color:#6b7169;font-size:13px">本书没有目录信息。</p>';
+          return;
+        }
+        tocEl.innerHTML = "<h3>目录</h3>" +
+          st.toc.map((it) => '<a href="#" data-target="' + esc(it.id) + '">' + esc(it.label) + "</a>").join("");
+        tocEl.querySelectorAll("a[data-target]").forEach((a) => {
+          a.addEventListener("click", (e) => {
+            e.preventDefault();
+            jumpTo(a.getAttribute("data-target"));
+            closeDrawer();
+          });
+        });
+      }
+
+      /* ── 进度恢复 ── */
+      const saved = loadProgress(b.id);
+
+      parseBook()
+        .then(() => {
+          mount();
+          bindPager();
+          renderToc();
+
+          if (saved && saved.anchor) jumpTo(saved.anchor);
+          else if (saved && typeof saved.pct === "number" && st.pages > 1) {
+            goto(Math.round(saved.pct * (st.pages - 1)));
+          }
+          render();
+        })
+        .catch((e) => fail(e && e.message ? e.message : String(e)));
+
+      /* 尺寸变化：转到别的位置先记住，重排后再回去 */
+      let rzTimer = null;
+      let lastW = 0, lastH = 0;
+      function onResize() {
+        if (!st.pager || !readerEl.classList.contains("open")) return;
+        const w = viewerEl.clientWidth;
+        const h = viewerEl.clientHeight;
+        if (!w || !h) return;
+        if (Math.abs(w - lastW) < 8 && Math.abs(h - lastH) < 8) return;
+        lastW = w;
+        lastH = h;
+        measure(true);
+      }
+      window.addEventListener("resize", () => {
+        clearTimeout(rzTimer);
+        rzTimer = setTimeout(onResize, 300);
+      });
+      window.addEventListener("orientationchange", () => {
+        clearTimeout(rzTimer);
+        rzTimer = setTimeout(onResize, 600);
       });
 
-      /* 左右翻页按钮：点击区域出问题时仍有明确入口 */
+      /* 键盘 */
+      function onKey(e) {
+        if (!readerEl.classList.contains("open")) return;
+        if (e.key === "ArrowRight" || e.key === " " || e.key === "PageDown") {
+          e.preventDefault();
+          turn(1);
+        }
+        if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); turn(-1); }
+        if (e.key === "Escape") closeReader();
+      }
+      document.addEventListener("keydown", onKey);
+
+      /* 翻页按钮 */
       const prevBtn = document.getElementById("prevPage");
       const nextBtn = document.getElementById("nextPage");
       if (prevBtn) {
@@ -381,79 +676,17 @@
         nextBtn.addEventListener("click", (e) => { e.stopPropagation(); turn(1); });
       }
 
-      /* 选中文字 → 生成卡片 */
-      let lastQuote = "";
-      rendition.on("selected", (cfiRange) => {
-        try {
-          const range = rendition.getRange(cfiRange);
-          lastQuote = range ? String(range.toString()).trim() : "";
-        } catch (e) {
-          lastQuote = "";
-        }
-        if (lastQuote.length > 4) setTimeout(showQuoteBtn, 40);
-      });
-
-      /* 键盘 */
-      function onKey(e) {
-        if (!readerEl.classList.contains("open")) return;
-        if (e.key === "ArrowRight" || e.key === " ") turn(1);
-        if (e.key === "ArrowLeft") turn(-1);
-        if (e.key === "Escape") closeReader();
-      }
-      document.addEventListener("keydown", onKey);
-      /* 焦点在正文 iframe 里时，父页面的 keydown 收不到，单独绑一份 */
-      rendition.hooks.content.register((contents) => {
-        contents.document.addEventListener("keydown", (e) => {
-          if (e.key === "ArrowRight" || e.key === " " || e.key === "PageDown") { e.preventDefault(); turn(1); }
-          if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); turn(-1); }
-        });
-      });
-
-      /* 设置：字号与主题 */
-      let fontPct = 100;
-      const THEMES = {
-        paper: "html, body { background:#fdfbf4 !important; color:#1f2320 !important; } a { color:#2f4a3c !important; }",
-        night: "html, body { background:#16181a !important; color:#c3c8c3 !important; } a { color:#8fb6a1 !important; }",
-        plain: "html, body { background:#ffffff !important; color:#111 !important; }",
-      };
-      rendition.themes.register("paper", THEMES.paper);
-      rendition.themes.register("night", THEMES.night);
-      rendition.themes.register("plain", THEMES.plain);
-      rendition.themes.select("paper");
-      rendition.themes.fontSize(fontPct + "%");
-
-      /* 先算好全书分页（locations），再显示第一屏。
-         以前是边显示边 generate，两者抢同一份排版，翻页时机、页数都会乱 */
-      const saved = loadProgress(b.id);
-      const target = startHref || (saved && saved.cfi) || null;
-
-      function firstDisplay() {
-        const p = target ? rendition.display(target) : rendition.display();
-        return p.then(() => updateProgress())
-          .catch(() => rendition.display().then(updateProgress));
-      }
-
-      book.ready
-        .then(() => book.locations.generate(800))
-        .catch(() => null)
-        .then(firstDisplay)
-        .catch((e) => fail(e && e.message));
-
-      /* 兜底：15 秒还没渲染出页面，就给出可操作的提示，别留一片空白 */
-      setTimeout(() => {
-        if (!viewerEl.querySelector("iframe")) fail("加载超时，可能是网络较慢或文件较大。");
-      }, 15000);
-
       document.querySelectorAll("[data-font]").forEach((btn) => {
         btn.addEventListener("click", () => {
-          fontPct = btn.dataset.font === "up" ? Math.min(180, fontPct + 10) : Math.max(70, fontPct - 10);
-          rendition.themes.fontSize(fontPct + "%");
+          st.fontPct = btn.dataset.font === "up" ? Math.min(180, st.fontPct + 10) : Math.max(70, st.fontPct - 10);
+          if (st.flow) measure(true);
         });
       });
 
       document.querySelectorAll("[data-theme]").forEach((btn) => {
         btn.addEventListener("click", () => {
-          rendition.themes.select(btn.dataset.theme);
+          themeName = btn.dataset.theme;
+          applyTheme(themeName);
           document.querySelectorAll("[data-theme]").forEach((x) =>
             x.setAttribute("aria-pressed", String(x === btn))
           );

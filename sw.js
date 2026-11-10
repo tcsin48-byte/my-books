@@ -1,5 +1,5 @@
 /* 离线缓存：内容用网络优先（保证更新即时），静态资源用缓存优先（省流量、离线可读） */
-const CACHE = "wb-study-v6";
+const CACHE = "wb-study-v7";
 
 const CORE = [
   "./",
@@ -12,7 +12,6 @@ const CORE = [
   "assets/js/reader.js",
   "assets/js/pwa.js",
   "assets/vendor/jszip.min.js",
-  "assets/vendor/epub.min.js",
   "data/books.json",
   "data/site.json",
   "media/icon.svg",

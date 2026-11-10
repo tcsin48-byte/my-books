@@ -349,6 +349,32 @@ button, input, select { font-family: var(--sans); font-size: 15px; }
 #viewer { position: absolute; inset: 0; overflow: hidden; }
 #viewer iframe { border: 0; display: block; }
 
+/* 自建分栏分页：一栏一页，翻页只平移一栏 */
+#viewer .pager {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  font-family: var(--serif);
+  font-size: 17px;
+  line-height: 1.75;
+  -webkit-user-select: text;
+  user-select: text;
+}
+#viewer .pager-flow {
+  position: relative;
+  margin: 0;
+  padding: 0;
+  will-change: transform;
+}
+#viewer .pager-flow .chapter {
+  padding: 0 6px;
+}
+/* 章节之间另起一栏；第一章不加，避免开头多出空栏 */
+#viewer .pager-flow .chapter + .chapter { break-before: column; }
+#viewer .pager-flow img { max-width: 100%; max-height: 100%; height: auto; }
+#viewer .pager-flow h1, #viewer .pager-flow h2 { break-after: avoid; }
+#viewer .pager-flow a { color: var(--green); }
+
 /* 页数 */
 .reader-bar .pageinfo {
   flex: 0 0 auto;
