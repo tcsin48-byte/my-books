@@ -350,13 +350,19 @@ button, input, select { font-family: var(--sans); font-size: 15px; }
 #viewer iframe { border: 0; display: block; }
 
 /* 自建分栏分页：一栏一页，翻页只平移一栏 */
-#viewer .pager {
+#viewer .pagerbox {
   position: absolute;
   inset: 0;
+  width: auto;
+  height: auto;
   overflow: hidden;
   font-family: var(--serif);
   font-size: 17px;
   line-height: 1.75;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  transform: none;
   -webkit-user-select: text;
   user-select: text;
 }
@@ -385,8 +391,8 @@ button, input, select { font-family: var(--sans); font-size: 15px; }
 }
 .reader-bar .pageinfo:empty { display: none; }
 
-/* 翻页按钮 */
-.pager {
+/* 翻页按钮（限定在 viewer-shell 直接子级，避免波及正文容器） */
+.viewer-shell > .pager {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
@@ -407,11 +413,11 @@ button, input, select { font-family: var(--sans); font-size: 15px; }
   transition: background 0.15s;
   -webkit-tap-highlight-color: transparent;
 }
-.pager:hover { background: rgba(47, 74, 60, 0.2); }
-.pager:active { background: rgba(47, 74, 60, 0.28); }
-.pager.prev { left: 6px; }
-.pager.next { right: 6px; }
-.pager[hidden] { display: none; }
+.viewer-shell > .pager:hover { background: rgba(47, 74, 60, 0.2); }
+.viewer-shell > .pager:active { background: rgba(47, 74, 60, 0.28); }
+.viewer-shell > .pager.prev { left: 6px; }
+.viewer-shell > .pager.next { right: 6px; }
+.viewer-shell > .pager[hidden] { display: none; }
 
 .reader-progress {
   height: 3px;

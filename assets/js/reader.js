@@ -537,7 +537,9 @@
       function mount() {
         viewerEl.innerHTML = "";
         const pager = document.createElement("div");
-        pager.className = "pager";
+        /* 注意：不能叫 .pager —— 那个类名被左右翻页按钮占用，
+           会把按钮的 42×78 尺寸套到整块正文上，正文只剩一条缝 */
+        pager.className = "pagerbox";
         const flow = document.createElement("div");
         flow.className = "pager-flow";
         st.chapters.forEach((c, i) => {

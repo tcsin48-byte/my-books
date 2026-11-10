@@ -1,5 +1,5 @@
 /* 离线缓存：内容用网络优先（保证更新即时），静态资源用缓存优先（省流量、离线可读） */
-const CACHE = "wb-study-v8";
+const CACHE = "wb-study-v9";
 
 const CORE = [
   "./",
