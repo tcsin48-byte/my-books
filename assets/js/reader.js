@@ -374,10 +374,18 @@
             a.setAttribute("data-jump", id);
           });
 
-          /* id 加章节前缀，避免不同章节重名 */
+          /* id 加章节前缀，避免不同章节重名；没有 id 的段落补一个，用于记住阅读位置 */
           Array.prototype.forEach.call(body.querySelectorAll("[id]"), (el) => {
             el.setAttribute("id", "c" + i + "_" + el.getAttribute("id"));
           });
+          let bi = 0;
+          Array.prototype.forEach.call(
+            body.querySelectorAll("p, h1, h2, h3, h4, li, blockquote, div"),
+            (el) => {
+              if (el.getAttribute("id")) return;
+              el.setAttribute("id", "c" + i + "_b" + bi++);
+            }
+          );
 
           let title = "";
           const h = body.querySelector("h1, h2, h3");
@@ -464,8 +472,12 @@
         if (!st.pager || !st.pages) return "";
         const r = st.pager.getBoundingClientRect();
         let el = document.elementFromPoint(r.left + 10, r.top + 10);
-        while (el && !el.id && el !== st.flow) el = el.parentElement;
-        return el && el.id ? el.id : "";
+        /* 只往上找到 flow 为止，别走到 #viewer，否则会误当第一章 */
+        while (el && el !== st.flow) {
+          if (el.id) return el.id;
+          el = el.parentElement;
+        }
+        return "";
       }
 
       function chapterIndexAt(el) {
@@ -578,6 +590,19 @@
           }
         });
 
+        /* 手机上长按选字没有 mouseup，用 selectionchange 兜一下 */
+        let selTimer = null;
+        document.addEventListener("selectionchange", () => {
+          clearTimeout(selTimer);
+          selTimer = setTimeout(() => {
+            const sel = window.getSelection ? String(window.getSelection()).trim() : "";
+            if (sel.length > 4) {
+              lastQuote = sel;
+              showQuoteBtn();
+            }
+          }, 600);
+        });
+
         let sx = 0, sy = 0, stt = 0;
         pager.addEventListener("touchstart", (e) => {
           if (e.touches.length !== 1) return;
@@ -627,6 +652,8 @@
             goto(Math.round(saved.pct * (st.pages - 1)));
           }
           render();
+          lastW = viewerEl.clientWidth;
+          lastH = viewerEl.clientHeight;
         })
         .catch((e) => fail(e && e.message ? e.message : String(e)));
 

@@ -1,5 +1,5 @@
 /* 离线缓存：内容用网络优先（保证更新即时），静态资源用缓存优先（省流量、离线可读） */
-const CACHE = "wb-study-v7";
+const CACHE = "wb-study-v8";
 
 const CORE = [
   "./",
@@ -45,7 +45,11 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
 
-  const isContent = req.mode === "navigate" || url.pathname.endsWith(".json");
+  /* 页面、数据、脚本、样式都走网络优先：改一次就生效，不必等缓存过期 */
+  const isContent =
+    req.mode === "navigate" ||
+    url.pathname.endsWith(".json") ||
+    /\.(?:js|css)$/.test(url.pathname);
 
   if (isContent) {
     // 网络优先，断网时用缓存
