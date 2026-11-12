@@ -1,20 +1,18 @@
 [
   {
-    "id": "wujiynui",
-    "title": "五指之内",
-    "subtitle": "诗集",
+    "id": "czxxdwx",
+    "title": "陈政欣的微型",
+    "subtitle": "微型小说",
     "type": "陈政欣丛书",
-    "year": "1983年",
+    "year": "1988年",
     "lang": "中文",
-    "tags": [
-      "现代诗",
-      "诗集"
-    ],
-    "cover": "media/covers/wuzhi-zhinei.jpg",
-    "desc": "诗集。卷首有代序《如来五指》，正文分四辑：无窗无户的石室及其他、如来、不题与寂寞、花的讯息，书末附创作年表。",
-    "epub": "books/wuzhi-zhinei.epub",
-    "size": 826580,
-    "updated": "2026-11-09"
+    "tags": ["微型小说"],
+    "cover": "media/covers/czxxdwx.jpg",
+    "desc": "微型小说集。棕榈丛书之十二，一九八八年十一月由 B.M. Paper Products Sdn. Bhd.（大山脚）出版。",
+    "epub": "books/czxxdwx.epub",
+    "pdf": "",
+    "size": "404849",
+    "updated": "2026-11-12"
   },
   {
     "id": "sylt",
@@ -23,25 +21,27 @@
     "type": "陈政欣丛书",
     "year": "1986年",
     "lang": "中文",
-    "tags": [
-      "短篇小说"
-    ],
-    "epub": "media/树与旅途（简体）_1792059019048038695-1.epub",
-    "size": 748000,
+    "tags": ["短篇小说"],
+    "cover": "media/covers/sylt.jpg",
+    "desc": "短篇小说集，棕榈出版社（Penerbitan Palas）出版。",
+    "epub": "books/sylt.epub",
+    "pdf": "",
+    "size": "747908",
     "updated": "2026-11-12"
   },
   {
-    "id": "czxxdwx",
-    "title": "陈政欣的微型",
-    "subtitle": "微型小说",
+    "id": "wuzhi-zhinei",
+    "title": "五指之内",
+    "subtitle": "诗集",
     "type": "陈政欣丛书",
-    "year": "1988年",
+    "year": "1983年",
     "lang": "中文",
-    "tags": [
-      "微型小说"
-    ],
-    "desc": "陈政欣的微型",
-    "size": 405000,
-    "updated": "2026-11-12"
+    "tags": ["现代诗", "诗集"],
+    "cover": "media/covers/wuzhi-zhinei.jpg",
+    "desc": "诗集。卷首有代序《如来五指》，正文分四辑：无窗无户的石室及其他、如来、不题与寂寞、花的讯息，书末附创作年表。",
+    "epub": "books/wuzhi-zhinei.epub",
+    "pdf": "",
+    "size": "826580",
+    "updated": "2026-11-09"
   }
 ]
