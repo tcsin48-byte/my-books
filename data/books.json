@@ -2,8 +2,9 @@
   {
     "id": "wujiynui",
     "title": "五指之内",
+    "subtitle": "诗集",
     "type": "陈政欣丛书",
-    "year": "2026",
+    "year": "1983年",
     "lang": "中文",
     "tags": [
       "现代诗",
@@ -14,5 +15,19 @@
     "epub": "books/wuzhi-zhinei.epub",
     "size": 826580,
     "updated": "2026-11-09"
+  },
+  {
+    "id": "sylt",
+    "title": "树与旅途",
+    "subtitle": "短篇小说",
+    "type": "陈政欣丛书",
+    "year": "1986年",
+    "lang": "中文",
+    "tags": [
+      "短篇小说"
+    ],
+    "epub": "media/树与旅途（简体）_1792059019048038695-1.epub",
+    "size": 748000,
+    "updated": "2026-11-12"
   }
 ]
