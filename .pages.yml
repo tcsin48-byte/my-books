@@ -51,7 +51,7 @@ content:
       - name: cover
         label: 封面
         type: image
-        description: 竖版封面最好，比例约 2:3（例如 600×900）。jpg / png / svg / webp 都行。文件名避免中文和空格。留空的话卡片会显示破图。
+        description: 「必须在封面字段里点上传并选中这张图」。只把图片传到媒体库、不在这里选中，书目里就记不到它，首页卡片会破图。竖版 2:3 最好（600×900），文件名用英文数字。
       - name: desc
         label: 简介
         type: text
@@ -59,11 +59,11 @@ content:
       - name: epub
         label: EPUB 文件
         type: file
-        description: 留空表示没有 EPUB 版本。上传后 GitHub Actions 会自动重建正文索引，约 1–2 分钟；在那之前首页正文搜索还搜不到这本，属正常。网页后台单文件上限 25 MB。
+        description: 「必须在这个字段里点上传并选中 epub」。只把文件传到媒体库、不在这里选中，书目里就记不到它，读者打开详情页看不到「在线阅读」。选中后 GitHub Actions 会自动重建正文索引，约 1–2 分钟。网页后台单文件上限 25 MB。
       - name: pdf
         label: PDF 文件
         type: file
-        description: 留空表示没有 PDF 版本。适合带插图、需要固定排版的册子。超过 25 MB 请改传 GitHub Releases，再把下载链接填在这里（可以直接填完整网址）。
+        description: 同样必须在本字段里选中文件。适合带插图、需要固定排版的册子。超过 25 MB 请改传 GitHub Releases，再把下载链接填在这里。
       - name: size
         label: 文件大小（字节）
         type: number
