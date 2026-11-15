@@ -95,5 +95,18 @@
     "epub": "media/青天白日凉飕飕-2.epub",
     "size": 439001,
     "updated": "2026-11-15"
+  },
+  {
+    "id": "gushi",
+    "title": "窥视",
+    "subtitle": "中、短篇小说",
+    "type": "陈政欣丛书",
+    "year": "2010年",
+    "lang": "中文",
+    "cover": "media/窥视 封面.jpg",
+    "desc": "台湾秀威出版社",
+    "epub": "media/窥视（短篇小说集）.epub",
+    "size": 317000,
+    "updated": "2026-11-15"
   }
 ]
