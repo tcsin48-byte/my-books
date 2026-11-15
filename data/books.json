@@ -6,12 +6,13 @@
     "type": "陈政欣丛书",
     "year": "1993年",
     "lang": "中文",
-    "tags": ["短篇小说"],
+    "tags": [
+      "短篇小说"
+    ],
     "cover": "media/covers/shan-de-yinying.jpg",
     "desc": "短篇小说集，一九九三年由马来西亚华文作家协会出版。",
     "epub": "books/shan-de-yinying.epub",
-    "pdf": "",
-    "size": "512733",
+    "size": 512733,
     "updated": "2026-11-13"
   },
   {
@@ -21,12 +22,13 @@
     "type": "陈政欣丛书",
     "year": "1995年",
     "lang": "中文",
-    "tags": ["短篇小说"],
+    "tags": [
+      "短篇小说"
+    ],
     "cover": "media/covers/chenzhengxin-wenji.jpg",
     "desc": "「东南亚华文文学大系」马来西亚卷，鹭江出版社出版。",
     "epub": "books/chenzhengxin-wenji.epub",
-    "pdf": "",
-    "size": "736704",
+    "size": 736704,
     "updated": "2026-11-13"
   },
   {
@@ -36,12 +38,13 @@
     "type": "陈政欣丛书",
     "year": "1988年",
     "lang": "中文",
-    "tags": ["微型小说"],
+    "tags": [
+      "微型小说"
+    ],
     "cover": "media/covers/czxxdwx.jpg",
     "desc": "微型小说集。棕榈丛书之十二，一九八八年十一月由 B.M. Paper Products Sdn. Bhd.（大山脚）出版。",
     "epub": "books/czxxdwx.epub",
-    "pdf": "",
-    "size": "404849",
+    "size": 404849,
     "updated": "2026-11-12"
   },
   {
@@ -51,12 +54,13 @@
     "type": "陈政欣丛书",
     "year": "1986年",
     "lang": "中文",
-    "tags": ["短篇小说"],
+    "tags": [
+      "短篇小说"
+    ],
     "cover": "media/covers/sylt.jpg",
     "desc": "短篇小说集，棕榈出版社（Penerbitan Palas）出版。",
     "epub": "books/sylt.epub",
-    "pdf": "",
-    "size": "747908",
+    "size": 747908,
     "updated": "2026-11-12"
   },
   {
@@ -66,12 +70,28 @@
     "type": "陈政欣丛书",
     "year": "1983年",
     "lang": "中文",
-    "tags": ["现代诗", "诗集"],
+    "tags": [
+      "现代诗",
+      "诗集"
+    ],
     "cover": "media/covers/wuzhi-zhinei.jpg",
     "desc": "诗集。卷首有代序《如来五指》，正文分四辑：无窗无户的石室及其他、如来、不题与寂寞、花的讯息，书末附创作年表。",
     "epub": "books/wuzhi-zhinei.epub",
-    "pdf": "",
-    "size": "826580",
+    "size": 826580,
     "updated": "2026-11-09"
+  },
+  {
+    "id": "qingtianbairiliangsousou",
+    "title": "青天白日凉飕飕",
+    "subtitle": "短篇小说",
+    "type": "陈政欣丛书",
+    "year": "2010年",
+    "lang": "中文",
+    "tags": [
+      "短篇小说"
+    ],
+    "desc": "马华文学馆04",
+    "size": 439001,
+    "updated": "2026-11-15"
   }
 ]
