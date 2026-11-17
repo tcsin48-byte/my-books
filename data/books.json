@@ -108,5 +108,18 @@
     "epub": "media/窥视（短篇小说集）.epub",
     "size": 317000,
     "updated": "2026-11-15"
+  },
+  {
+    "id": "hsdzs",
+    "title": "话说电子书",
+    "subtitle": "纯电子书制作",
+    "type": "纯电子书",
+    "year": "2011年",
+    "lang": "中文",
+    "cover": "media/话说电子书 封面.jpg",
+    "desc": "陈政欣电子丛书01     陈政欣电子书制作室",
+    "epub": "media/话说电子书（简体）.epub",
+    "size": 175000,
+    "updated": "2026-11-17"
   }
 ]
