@@ -134,5 +134,18 @@
     "epub": "media/荡漾水乡（阅读版）.epub",
     "size": 608000,
     "updated": "2026-11-19"
+  },
+  {
+    "id": "fcwq",
+    "title": "风中文字",
+    "subtitle": "杂文集",
+    "type": "陈政欣丛书",
+    "year": "2013年",
+    "lang": "中文",
+    "cover": "media/封面-1.jpg",
+    "desc": "雪隆兴安会馆出版    金炎文丛（第二辑）03",
+    "epub": "media/风中文字（阅读版）.epub",
+    "size": 648000,
+    "updated": "2026-11-19"
   }
 ]
