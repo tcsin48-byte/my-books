@@ -147,5 +147,18 @@
     "epub": "media/风中文字（阅读版）.epub",
     "size": 648000,
     "updated": "2026-11-19"
+  },
+  {
+    "id": "wxrwj",
+    "title": "文学的武吉",
+    "subtitle": "散文集",
+    "type": "陈政欣丛书",
+    "year": "2014年",
+    "lang": "中文",
+    "cover": "media/封面-3.jpg",
+    "desc": "有人出版社出版    有名系列50",
+    "epub": "media/文学的武吉（阅读版）.epub",
+    "size": 767000,
+    "updated": "2026-11-19"
   }
 ]
