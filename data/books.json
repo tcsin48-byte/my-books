@@ -121,5 +121,18 @@
     "epub": "media/话说电子书（简体）.epub",
     "size": 175000,
     "updated": "2026-11-17"
+  },
+  {
+    "id": "dangyangshuixiang",
+    "title": "荡漾水乡",
+    "subtitle": "短篇小说",
+    "type": "陈政欣丛书",
+    "year": "2013年",
+    "lang": "中文",
+    "cover": "media/封面.jpg",
+    "desc": "有人出版社出版  有名系列44",
+    "epub": "media/荡漾水乡（阅读版）.epub",
+    "size": 608000,
+    "updated": "2026-11-19"
   }
 ]
