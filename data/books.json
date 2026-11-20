@@ -250,5 +250,18 @@
     "epub": "media/武吉演义_校订版.epub",
     "size": 791001,
     "updated": "2026-11-20"
+  },
+  {
+    "id": "wujiyishi",
+    "title": "武吉轶事",
+    "subtitle": "长篇小说",
+    "type": "陈政欣丛书",
+    "year": "2025年",
+    "lang": "中文",
+    "cover": "media/封面-9.jpg",
+    "desc": "有人出版社出版      有名系列151",
+    "epub": "media/武吉轶事（阅读版）.epub",
+    "size": 702000,
+    "updated": "2026-11-20"
   }
 ]
