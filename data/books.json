@@ -186,5 +186,18 @@
     "epub": "media/做脸（阅读版）.epub",
     "size": 285000,
     "updated": "2026-11-20"
+  },
+  {
+    "id": "sglb",
+    "title": "事关脆皮",
+    "subtitle": "小说 散文 剧本 合集",
+    "type": "陈政欣丛书",
+    "year": "2017年",
+    "lang": "中文",
+    "cover": "media/封面-5.jpg",
+    "desc": "大将出版社     马华文学大系13",
+    "epub": "media/事关脸皮（阅读版）.epub",
+    "size": 368000,
+    "updated": "2026-11-20"
   }
 ]
