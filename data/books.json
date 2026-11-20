@@ -212,5 +212,18 @@
     "epub": "media/流光溢彩（阅读版）.epub",
     "size": 864000,
     "updated": "2026-11-20"
+  },
+  {
+    "id": "czxsq",
+    "title": "陈政欣选集",
+    "subtitle": "作品选集",
+    "type": "陈政欣丛书",
+    "year": "2020年",
+    "lang": "中文",
+    "cover": "media/封面-7.jpg",
+    "desc": "南洋理工大学孔子学院出版    南洋华文文学奖丛书",
+    "epub": "media/陈政欣选集（阅读版）.epub",
+    "size": 1100000,
+    "updated": "2026-11-20"
   }
 ]
