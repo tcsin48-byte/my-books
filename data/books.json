@@ -199,5 +199,18 @@
     "epub": "media/事关脸皮（阅读版）.epub",
     "size": 368000,
     "updated": "2026-11-20"
+  },
+  {
+    "id": "lkye",
+    "title": "流光溢彩",
+    "subtitle": "短篇小说集",
+    "type": "陈政欣丛书",
+    "year": "2022年",
+    "lang": "中文",
+    "cover": "media/封面-6.jpg",
+    "desc": "有人出版社     有名系列113",
+    "epub": "media/流光溢彩（阅读版）.epub",
+    "size": 864000,
+    "updated": "2026-11-20"
   }
 ]
