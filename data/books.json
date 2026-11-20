@@ -173,5 +173,18 @@
     "epub": "media/小说的武吉（简体版）.epub",
     "size": 374000,
     "updated": "2026-11-20"
+  },
+  {
+    "id": "zhoulian",
+    "title": "做脸",
+    "subtitle": "微型小说集",
+    "type": "陈政欣丛书",
+    "year": "2016年",
+    "lang": "中文",
+    "cover": "media/封面-4.jpg",
+    "desc": "马华文学馆出版       文学馆05",
+    "epub": "media/做脸（阅读版）.epub",
+    "size": 285000,
+    "updated": "2026-11-20"
   }
 ]
