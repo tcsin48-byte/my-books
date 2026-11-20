@@ -160,5 +160,18 @@
     "epub": "media/文学的武吉（阅读版）.epub",
     "size": 767000,
     "updated": "2026-11-19"
+  },
+  {
+    "id": "xsrwj",
+    "title": "小说的武吉",
+    "subtitle": "短篇小说",
+    "type": "陈政欣丛书",
+    "year": "2015年",
+    "lang": "中文",
+    "cover": "media/小说的武吉 封面.jpg",
+    "desc": "有人出版社出版    有名系列57",
+    "epub": "media/小说的武吉（简体版）.epub",
+    "size": 374000,
+    "updated": "2026-11-20"
   }
 ]
