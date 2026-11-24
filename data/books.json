@@ -263,5 +263,17 @@
     "epub": "media/武吉轶事（阅读版）.epub",
     "size": 702000,
     "updated": "2026-11-20"
+  },
+  {
+    "id": "stiletto",
+    "title": "杀手",
+    "subtitle": "翻译长篇小说",
+    "type": "翻译作品",
+    "year": "1981年",
+    "lang": "中文",
+    "cover": "media/杀手_封面.jpg",
+    "desc": "皇冠丛书807种   当代名著精选 61   台湾皇冠出版社",
+    "size": 4100000,
+    "updated": "2026-11-24"
   }
 ]
