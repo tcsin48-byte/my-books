@@ -1,5 +1,77 @@
 [
   {
+    "id": "stiletto",
+    "title": "杀手",
+    "subtitle": "翻译长篇小说（影印本）",
+    "type": "翻译作品",
+    "year": "1981年",
+    "lang": "中文",
+    "tags": [
+      "翻译",
+      "长篇小说",
+      "影印本"
+    ],
+    "cover": "media/stiletto-cover.jpg",
+    "desc": "皇冠丛书第807种　当代名著精选61。哈罗德·罗宾斯原著，南洋商报连载，剪报影印本。",
+    "epub": "media/stiletto.epub",
+    "size": 4072050,
+    "updated": "2026-11-25"
+  },
+  {
+    "id": "naked-face",
+    "title": "赤裸的脸",
+    "subtitle": "翻译长篇小说（影印本）",
+    "type": "翻译作品",
+    "year": "1982年",
+    "lang": "中文",
+    "tags": [
+      "翻译",
+      "长篇小说",
+      "影印本"
+    ],
+    "cover": "media/naked-face-cover.jpg",
+    "desc": "西德尼·谢尔顿原著，剪报影印本，南洋商报连载。",
+    "epub": "media/naked-face.epub",
+    "size": 4603963,
+    "updated": "2026-11-25"
+  },
+  {
+    "id": "tell-the-president",
+    "title": "要不要告诉总统",
+    "subtitle": "翻译长篇小说（影印本）",
+    "type": "翻译作品",
+    "year": "1983年",
+    "lang": "中文",
+    "tags": [
+      "翻译",
+      "长篇小说",
+      "影印本"
+    ],
+    "cover": "media/tell-the-president-cover.jpg",
+    "desc": "皇冠丛书第896种　当代名著精选131。杰弗里·阿切尔原著，南洋商报连载，剪报影印本。",
+    "epub": "media/tell-the-president.epub",
+    "size": 6237983,
+    "updated": "2026-11-25"
+  },
+  {
+    "id": "the-big-con",
+    "title": "大骗局",
+    "subtitle": "翻译长篇小说（影印本）",
+    "type": "翻译作品",
+    "year": "1986年",
+    "lang": "中文",
+    "tags": [
+      "翻译",
+      "长篇小说",
+      "影印本"
+    ],
+    "cover": "media/the-big-con-cover.jpg",
+    "desc": "皇冠丛书第1268种　当代名著精选301。杰弗里·阿切尔原著，南洋商报连载，剪报影印本。",
+    "epub": "media/the-big-con.epub",
+    "size": 6348619,
+    "updated": "2026-11-25"
+  },
+  {
     "id": "shan-de-yinying",
     "title": "山的阴影",
     "subtitle": "短篇小说",
@@ -93,7 +165,7 @@
     "cover": "media/青天白日凉飕飕 封面-1.jpg",
     "desc": "马华文学馆04",
     "epub": "media/青天白日凉飕飕-2.epub",
-    "size": 439001,
+    "size": 439225,
     "updated": "2026-11-15"
   },
   {
@@ -106,7 +178,7 @@
     "cover": "media/窥视 封面.jpg",
     "desc": "台湾秀威出版社",
     "epub": "media/窥视（短篇小说集）.epub",
-    "size": 317000,
+    "size": 316709,
     "updated": "2026-11-15"
   },
   {
@@ -119,7 +191,7 @@
     "cover": "media/话说电子书 封面.jpg",
     "desc": "陈政欣电子丛书01     陈政欣电子书制作室",
     "epub": "media/话说电子书（简体）.epub",
-    "size": 175000,
+    "size": 174980,
     "updated": "2026-11-17"
   },
   {
@@ -132,7 +204,7 @@
     "cover": "media/封面.jpg",
     "desc": "有人出版社出版  有名系列44",
     "epub": "media/荡漾水乡（阅读版）.epub",
-    "size": 608000,
+    "size": 608048,
     "updated": "2026-11-19"
   },
   {
@@ -145,7 +217,7 @@
     "cover": "media/封面-1.jpg",
     "desc": "雪隆兴安会馆出版    金炎文丛（第二辑）03",
     "epub": "media/风中文字（阅读版）.epub",
-    "size": 648000,
+    "size": 648147,
     "updated": "2026-11-19"
   },
   {
@@ -158,7 +230,7 @@
     "cover": "media/封面-3.jpg",
     "desc": "有人出版社出版    有名系列50",
     "epub": "media/文学的武吉（阅读版）.epub",
-    "size": 767000,
+    "size": 766662,
     "updated": "2026-11-19"
   },
   {
@@ -171,7 +243,7 @@
     "cover": "media/小说的武吉 封面.jpg",
     "desc": "有人出版社出版    有名系列57",
     "epub": "media/小说的武吉（简体版）.epub",
-    "size": 374000,
+    "size": 374122,
     "updated": "2026-11-20"
   },
   {
@@ -184,7 +256,7 @@
     "cover": "media/封面-4.jpg",
     "desc": "马华文学馆出版       文学馆05",
     "epub": "media/做脸（阅读版）.epub",
-    "size": 285000,
+    "size": 284981,
     "updated": "2026-11-20"
   },
   {
@@ -197,7 +269,7 @@
     "cover": "media/封面-5.jpg",
     "desc": "大将出版社     马华文学大系13",
     "epub": "media/事关脸皮（阅读版）.epub",
-    "size": 368000,
+    "size": 367895,
     "updated": "2026-11-20"
   },
   {
@@ -210,7 +282,7 @@
     "cover": "media/封面-6.jpg",
     "desc": "有人出版社     有名系列113",
     "epub": "media/流光溢彩（阅读版）.epub",
-    "size": 864000,
+    "size": 863962,
     "updated": "2026-11-20"
   },
   {
@@ -223,7 +295,7 @@
     "cover": "media/封面-7.jpg",
     "desc": "南洋理工大学孔子学院出版    南洋华文文学奖丛书",
     "epub": "media/陈政欣选集（阅读版）.epub",
-    "size": 1100000,
+    "size": 1142110,
     "updated": "2026-11-20"
   },
   {
@@ -235,7 +307,7 @@
     "cover": "media/封面-8.jpg",
     "desc": "潮州文学奖丛书之一      ",
     "epub": "media/镇上的三层楼（阅读版）.epub",
-    "size": 213000,
+    "size": 212656,
     "updated": "2026-11-20"
   },
   {
@@ -248,7 +320,7 @@
     "cover": "media/封面（简体）.jpg",
     "desc": "有人出版社出版       有名系列120",
     "epub": "media/武吉演义_校订版.epub",
-    "size": 791001,
+    "size": 790808,
     "updated": "2026-11-20"
   },
   {
@@ -261,19 +333,7 @@
     "cover": "media/封面-9.jpg",
     "desc": "有人出版社出版      有名系列151",
     "epub": "media/武吉轶事（阅读版）.epub",
-    "size": 702000,
+    "size": 702287,
     "updated": "2026-11-20"
-  },
-  {
-    "id": "stiletto",
-    "title": "杀手",
-    "subtitle": "翻译长篇小说",
-    "type": "翻译作品",
-    "year": "1981年",
-    "lang": "中文",
-    "cover": "media/杀手_封面.jpg",
-    "desc": "皇冠丛书807种   当代名著精选 61   台湾皇冠出版社",
-    "size": 4100000,
-    "updated": "2026-11-24"
   }
 ]

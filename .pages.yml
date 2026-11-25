@@ -59,11 +59,11 @@ content:
       - name: epub
         label: EPUB 文件
         type: file
-        description: 「必须在这个字段里点上传并选中 epub」。只把文件传到媒体库、不在这里选中，书目里就记不到它，读者打开详情页看不到「在线阅读」。选中后 GitHub Actions 会自动重建正文索引，约 1–2 分钟。网页后台单文件上限 25 MB。
+        description: 「必须在这个字段里点上传并选中 epub」。只把文件传到媒体库、不在这里选中，书目里就记不到它，读者打开详情页看不到「在线阅读」。选中后 GitHub Actions 会自动重建正文索引，约 1–2 分钟。⚠️ 这里上传上限只有 3 MB 左右（后台走服务器中转，请求体 4.5 MB，编码后膨胀），超了会失败且字段留空。大于 3 MB 的 epub 请先到 github.com/tcsin48-byte/my-books/upload/main/media 用网页上传（单文件 ≤25 MB），再回来在这个字段里选中。
       - name: pdf
         label: PDF 文件
         type: file
-        description: 同样必须在本字段里选中文件。适合带插图、需要固定排版的册子。超过 25 MB 请改传 GitHub Releases，再把下载链接填在这里。
+        description: 同样必须在本字段里选中文件。适合带插图、需要固定排版的册子。上限约 3 MB，超了请改走 GitHub 网页上传到 media/ 再回来选中。
       - name: size
         label: 文件大小（字节）
         type: number

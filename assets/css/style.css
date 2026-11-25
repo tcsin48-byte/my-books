@@ -390,6 +390,30 @@ button, input, select { font-family: var(--sans); font-size: 15px; }
 #viewer .pager-flow h1, #viewer .pager-flow h2 { break-after: avoid; }
 #viewer .pager-flow a { color: var(--green); }
 
+/* 固定版式（影印本）：一个 spine 项 = 一整页扫描图，整页等比帖满可用区 */
+#viewer .fixedbook { position: absolute; inset: 0; overflow: hidden; }
+#viewer .fixedpage {
+  position: absolute;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+}
+#viewer .fixedpage.on { display: flex; }
+#viewer .fixedpage > div { max-width: 100%; max-height: 100%; display: flex; align-items: center; justify-content: center; }
+#viewer .fixedpage img,
+#viewer .fixedpage svg {
+  display: block;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  width: auto !important;
+  height: auto !important;
+  object-fit: contain;
+  margin: 0 auto;
+}
+
 /* 页数 */
 .reader-bar .pageinfo {
   flex: 0 0 auto;

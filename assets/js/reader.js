@@ -230,6 +230,7 @@
         pager: null, flow: null, W: 0, H: 0,
         pages: 1, page: 0, fontPct: 100,
         chapters: [], cssText: "",
+        fixed: false, box: null,   // 固定版式（影印本）：一页一图，不走分栏
       };
 
       let zip = null;
@@ -396,6 +397,29 @@
         }
 
         if (!chapters.length) throw new Error("EPUB 正文为空");
+
+        /* 固定版式判定：影印本（扫描件）每个 spine 项就是一整页图片，
+           按栏切会切出一堆碎片，必须一页一图地翻 */
+        const layMeta = Array.prototype.find
+          ? Array.prototype.find.call(
+              opf.getElementsByTagName("meta"),
+              (m) => (m.getAttribute("property") || "") === "rendition:layout"
+            )
+          : null;
+        const layVal = layMeta ? String(layMeta.textContent || "").trim() : "";
+        if (layVal === "pre-paginated") st.fixed = true;
+        if (!st.fixed) {
+          /* 兜底：OPF 没写 rendition 时，看正文是不是「每页只有一张图、几乎无字」 */
+          const pictureOnly = chapters.every((c) => {
+            const plain = String(c.html)
+              .replace(/<(script|style)[\s\S]*?<\/\1>/gi, "")
+              .replace(/<[^>]*>/g, "")
+              .replace(/&nbsp;|\s/g, "");
+            return plain.length < 30 && /<img|<image/i.test(c.html);
+          });
+          if (pictureOnly) st.fixed = true;
+        }
+
         st.chapters = chapters;
         st.cssText = cssText;
 
@@ -429,6 +453,7 @@
 
       /* ── 版面 ── */
       function measure(keepAnchor) {
+        if (st.fixed) { layoutFixed(); return; }
         const anchorId = keepAnchor ? currentAnchor() : "";
         const availW = Math.floor(viewerEl.clientWidth) || 320;
         const H = Math.max(240, Math.floor(viewerEl.clientHeight));
@@ -469,8 +494,40 @@
 
       function goto(p) {
         st.page = Math.max(0, Math.min(st.pages - 1, Math.round(p || 0)));
+        if (st.fixed) {
+          showFixedPage();
+          render();
+          return;
+        }
         st.flow.style.transform = "translate3d(" + (-st.page * st.W) + "px,0,0)";
         render();
+      }
+
+      /* ── 固定版式：一次只显示一页，前后各预载一页 ── */
+      function layoutFixed() {
+        st.pages = Math.max(1, st.chapters.length);
+        st.W = viewerEl.clientWidth || 320;
+        st.H = Math.max(240, viewerEl.clientHeight || 480);
+        goto(Math.min(st.page, st.pages - 1));
+      }
+
+      function showFixedPage() {
+        if (!st.box) return;
+        const kids = st.box.children;
+        for (let i = 0; i < kids.length; i++) {
+          kids[i].classList.toggle("on", i === st.page);
+          const near = Math.abs(i - st.page) <= 1;
+          Array.prototype.forEach.call(kids[i].getElementsByTagName("img"), (img) => {
+            if (near) {
+              const s = img.getAttribute("data-src");
+              if (s && !img.getAttribute("src")) img.setAttribute("src", s);
+            } else if (img.getAttribute("src")) {
+              /* 远离当前页的图释放掉，161 页全解码会把手机撑爆 */
+              img.setAttribute("data-src", img.getAttribute("src"));
+              img.removeAttribute("src");
+            }
+          });
+        }
       }
 
       function currentAnchor() {
@@ -495,6 +552,20 @@
         progressBar.style.width = (pct * 100).toFixed(2) + "%";
         setPageInfo("第 " + (st.page + 1) + " / " + st.pages + " 页");
 
+        if (st.fixed) {
+          const ch = st.chapters[st.page];
+          if (ch && ch.title) currentTitle = ch.title;
+          clearTimeout(saveTimer);
+          saveTimer = setTimeout(() => {
+            saveProgress(b.id, {
+              anchor: "",
+              pct: st.pages > 1 ? st.page / (st.pages - 1) : 0,
+              at: new Date().toISOString().slice(0, 10),
+            });
+          }, 900);
+          return;
+        }
+
         const aid = currentAnchor();
         const ci = aid ? chapterIndexAt(document.getElementById(aid)) : -1;
         if (ci >= 0 && st.chapters[ci] && st.chapters[ci].title) currentTitle = st.chapters[ci].title;
@@ -511,6 +582,11 @@
 
       function jumpTo(id) {
         if (!id) return;
+        if (st.fixed) {
+          /* 目录 id 形如 c12_xxx，前半截就是页号 */
+          const m = /^c(\d+)_/.exec(String(id));
+          if (m) { goto(Number(m[1])); return; }
+        }
         let el = document.getElementById(id);
         if (!el) el = document.getElementById(id.replace(/_+$/, ""));
         if (!el) return;
@@ -543,6 +619,7 @@
       /* ── 挂载 ── */
       function mount() {
         viewerEl.innerHTML = "";
+        if (st.fixed) { mountFixed(); return; }
         const pager = document.createElement("div");
         /* 注意：不能叫 .pager —— 那个类名被左右翻页按钮占用，
            会把按钮的 42×78 尺寸套到整块正文上，正文只剩一条缝 */
@@ -568,6 +645,31 @@
         }
         applyTheme(themeName);
         measure(false);
+      }
+
+      /* 固定版式挂载：所有页先建好骨架，图片按需挂 src（data-src 懒加载） */
+      function mountFixed() {
+        const box = document.createElement("div");
+        box.className = "fixedbook";
+        st.chapters.forEach((c, i) => {
+          const fig = document.createElement("div");
+          fig.className = "fixedpage" + (i === 0 ? " on" : "");
+          fig.innerHTML = c.html;
+          Array.prototype.forEach.call(fig.getElementsByTagName("img"), (img) => {
+            const s = img.getAttribute("src");
+            if (s) {
+              img.setAttribute("data-src", s);
+              img.removeAttribute("src");
+            }
+          });
+          box.appendChild(fig);
+        });
+        viewerEl.appendChild(box);
+        st.box = box;
+        st.pager = box;          /* 让事件绑定有落点（点击/滑动翻页） */
+        st.flow = box;
+        applyTheme(themeName);
+        layoutFixed();
       }
 
       /* ── 交互 ── */

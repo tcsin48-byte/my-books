@@ -67,6 +67,10 @@ def parse_epub(path):
         base = os.path.dirname(opf)
         opf_xml = z.read(opf).decode("utf-8", "ignore")
 
+        # 固定版式（影印本）：每页就是一张扫描图，抽不出可用正文，直接跳过
+        if "pre-paginated" in opf_xml:
+            return sections
+
         manifest = {}
         for m in re.finditer(r"<item\b[^>]*>", opf_xml):
             tag = m.group(0)
@@ -118,6 +122,11 @@ def main():
         sections = parse_epub(path)
         if not sections:
             print("跳过（无正文）:", rel, file=sys.stderr)
+            continue
+        # 影印版兜底：整本几乎没有文字就没必要进索引，标点/页码噪声只会拖慢搜索
+        avg = sum(len(t) for _, t in sections) / float(len(sections))
+        if avg < 40:
+            print("跳过（图片书，正文过少）:", rel, file=sys.stderr)
             continue
         index.append(
             {
