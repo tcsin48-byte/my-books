@@ -335,5 +335,18 @@
     "epub": "media/武吉轶事（阅读版）.epub",
     "size": 702287,
     "updated": "2026-11-20"
+  },
+  {
+    "id": "murderataba",
+    "title": "美国书商公会谋杀案",
+    "subtitle": "翻译长篇小说（影印本）",
+    "type": "翻译作品",
+    "year": "1960年",
+    "lang": "中文",
+    "cover": "media/封面-10.jpg",
+    "desc": "Isaac Asimov 的侦探小说  文字版",
+    "epub": "media/美国书商公会谋杀案（简体）.epub",
+    "size": 250000,
+    "updated": "2026-11-25"
   }
 ]
