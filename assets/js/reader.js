@@ -69,9 +69,14 @@
       .join(" · ");
 
     const saved = b.epub ? loadProgress(b.id) : null;
+    const pdfOnly = !b.epub && !!b.pdf;
     const btns = [];
     if (b.epub || b.pdf) {
-      const label = saved ? "继续阅读 · " + Math.round((saved.pct || 0) * 100) + "%" : "在线阅读";
+      const label = saved
+        ? "继续阅读 · " + Math.round((saved.pct || 0) * 100) + "%"
+        : pdfOnly
+        ? "打开 PDF"
+        : "在线阅读";
       btns.push('<button class="btn" id="openReader">' + label + "</button>");
     }
     if (b.epub) btns.push('<a class="btn ghost" href="' + esc(b.epub) + '" download>下载 EPUB</a>');
@@ -127,6 +132,14 @@
     }
 
     function openReader() {
+      /* 纯 PDF：直接在新窗口交给浏览器自带的 PDF 阅读器。
+         站内 iframe 内嵌在 iOS / iPadOS 的 Safari 上只显示第一页、不能滚动，
+         换新窗口后系统阅读器可以正常翻页、缩放、下载。 */
+      if (!b.epub && b.pdf) {
+        const win = window.open(b.pdf, "_blank", "noopener");
+        if (win) return;
+        /* 弹窗被拦截时才退回内嵌 */
+      }
       readerEl.classList.add("open");
       document.body.style.overflow = "hidden";
       keepAwake();
